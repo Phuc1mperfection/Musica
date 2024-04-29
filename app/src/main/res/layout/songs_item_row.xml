@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/parentLayout"
+    android:background="#153448"
+    android:layout_marginTop="5dp"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="5dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp"
+    android:padding="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:id="@+id/imgSongs"
+        android:layout_centerVertical="true"
+        android:src="@drawable/saxophone_svgrepo_com"
+        />
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:orientation="vertical"
+       android:layout_centerVertical="true"
+       android:id="@id/imgSongs"
+       android:layout_marginStart="40dp"
+       >
+
+       <TextView
+           android:id="@+id/nameSongs"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:ellipsize="end"
+           android:textColor="@color/white"
+           android:textStyle="bold"
+           tools:text="SongName"
+           android:textSize="16sp"
+
+           />
+
+       <TextView
+           android:id="@+id/artistsSongs"
+           android:layout_width="match_parent"
+           android:layout_height="wrap_content"
+           android:ellipsize="end"
+           android:textColor="#f2f2f2"
+
+           tools:text="Artist" />
+   </LinearLayout>
+</RelativeLayout>

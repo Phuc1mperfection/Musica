@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f7f7f7">
+
+    <com.google.android.material.textfield.TextInputEditText
+
+    android:id="@+id/editTextEmail"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/input_background"
+        android:backgroundTint="#fff"
+        android:drawableLeft="@drawable/icon__mail_"
+        android:drawablePadding="8dp"
+        android:ems="10"
+        android:fontFamily="sans-serif"
+        android:foregroundTint="#fff"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:minHeight="50dp"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/editTextPassword"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="112dp"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="sans-serif"
+        android:text="Already have an account?"
+        android:textColor="#78909C"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/to_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="sans-serif"
+        android:text="Login!!"
+        android:textColor="#000000"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.018"
+        app:layout_constraintStart_toEndOf="@+id/textView2"
+        tools:ignore="TextSizeCheck" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/button_register"
+        android:layout_width="128dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/button_background"
+        android:fontFamily="sans-serif"
+        android:hapticFeedbackEnabled="true"
+        android:text="@string/submit"
+        android:textAllCaps="false"
+        app:layout_constraintBottom_toTopOf="@+id/textView2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/editTextUserName"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="40dp"
+        android:background="@drawable/input_background"
+        android:backgroundTint="#fff"
+        android:drawableLeft="@drawable/user"
+        android:drawablePadding="8dp"
+        android:ems="10"
+        android:fontFamily="sans-serif"
+        android:foregroundTint="#fff"
+        android:hint="Name"
+        android:inputType="text"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/editTextEmail"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/editTextPassword"
+        android:layout_width="300dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="48dp"
+        android:background="@drawable/input_background"
+        android:backgroundTint="#FFF"
+        android:drawableLeft="@drawable/lock"
+        android:drawablePadding="8dp"
+        android:ems="10"
+        android:fontFamily="sans-serif"
+        android:foregroundTint="#fff"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:minHeight="50dp"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/button_register"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="140dp"
+        android:layout_height="181dp"
+
+
+        android:layout_marginTop="24dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/saxophone_svgrepo_com" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="172dp"
+        android:layout_height="25dp"
+        android:layout_marginTop="44dp"
+        android:text="@string/registration"
+        android:textAlignment="center"
+        android:textColor="@color/brown"
+        android:textFontWeight="@integer/material_motion_duration_long_1"
+        android:textSize="22dp"
+        app:layout_constraintBottom_toTopOf="@+id/editTextUserName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView"
+        app:layout_constraintVertical_bias="0.0" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
