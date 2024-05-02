@@ -65,7 +65,7 @@ public class HomeFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         artistsList = new ArrayList<>();
-        adapter = new ArtistsAdapter(getContext(), artistsList);
+        adapter = new ArtistsAdapter(artistsList); // Không truyền Context vào constructor nữa
         recyclerView.setAdapter(adapter);
     }
 

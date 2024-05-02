@@ -7,6 +7,12 @@ public class SongModel {
     private String artists;
     private String songUrl;
     private String name;
+
+    // Required empty constructor for Firestore deserialization
+    public SongModel() {
+        // Default constructor required for Firestore
+    }
+
     public SongModel(String id, String imgUrl, String artists, String songUrl, String name) {
         this.id = id;
         this.imgUrl = imgUrl;
@@ -14,7 +20,8 @@ public class SongModel {
         this.songUrl = songUrl;
         this.name = name;
     }
-    // Getters and Setters (optional)
+
+    // Getters and Setters
     public String getId() {
         return id;
     }
@@ -54,6 +61,4 @@ public class SongModel {
     public void setName(String name) {
         this.name = name;
     }
-
-
 }

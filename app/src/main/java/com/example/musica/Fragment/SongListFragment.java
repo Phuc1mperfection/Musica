@@ -6,6 +6,8 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,9 +18,13 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.bumptech.glide.Glide;
+import com.example.musica.Adapter.SongListAdapter;
 import com.example.musica.Model.CategoryModel;
 import com.example.musica.R;
 import com.example.musica.databinding.FragmentSongListBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SongListFragment extends Fragment {
 
@@ -26,8 +32,9 @@ public class SongListFragment extends Fragment {
     private FragmentSongListBinding binding; // View Binding reference
     private CategoryModel selectedCategory;
 
+    private List<String> songIdList; // List to store song IDs
+    private SongListAdapter adapter; // Reference to the SongListAdapter
     public SongListFragment() {
-        // Required empty public constructor
     }
 
     public static SongListFragment newInstance(CategoryModel category) {
@@ -69,7 +76,7 @@ public class SongListFragment extends Fragment {
         // Access views using binding
         ImageView imgCategory = binding.imgCategories;
         TextView txtCategoryName = binding.nameCategories;
-
+        RecyclerView recyclerView = binding.songListRecyclerView;
         if (selectedCategory != null) {
             txtCategoryName.setText(selectedCategory.getName());
 
@@ -79,12 +86,28 @@ public class SongListFragment extends Fragment {
                         .load(selectedCategory.getImgUrl())
                         .placeholder(R.drawable.saxophone_svgrepo_com) // Placeholder image while loading
                         .into(imgCategory);
+                setupSongListRecycler(recyclerView);
             } else {
                 // If the image URL is null, set a default placeholder image
                 imgCategory.setImageResource(R.drawable.baseline_home_24);
             }
         } else {
             Log.w("SongListFragment", "No CategoryModel object received!");
+        }
+    }
+    private void setupSongListRecycler(RecyclerView recyclerView) {
+        // Check if song data is available in the category object
+        if (selectedCategory != null && selectedCategory.getSongs() != null) {
+            // Create SongListAdapter instance with the list of songs from the category
+            adapter = new SongListAdapter(selectedCategory.getSongs());
+
+            // Set Layout Manager for the RecyclerView (e.g., LinearLayoutManager)
+            binding.songListRecyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+            // Set the adapter for the RecyclerView
+            binding.songListRecyclerView.setAdapter(adapter);
+        } else {
+            Log.w("SongListFragment", "No song data found in the selected category!");
         }
     }
 }

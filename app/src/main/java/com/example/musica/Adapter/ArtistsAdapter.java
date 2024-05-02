@@ -13,34 +13,29 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.musica.Model.ArtistsModel;
 import com.example.musica.R;
+import com.example.musica.databinding.ArtistsItemRowBinding;
 
 import java.util.List;
 
 public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHolder> {
 
     private List<ArtistsModel> artistsList;
-    private Context context;
 
-    public ArtistsAdapter(Context context, List<ArtistsModel> artistsList) {
-        this.context = context;
+    public ArtistsAdapter(List<ArtistsModel> artistsList) {
         this.artistsList = artistsList;
     }
 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.artists_item_row, parent, false);
-        return new MyViewHolder(view);
+        ArtistsItemRowBinding binding = ArtistsItemRowBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new MyViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         ArtistsModel artist = artistsList.get(position);
-        holder.nameTextView.setText(artist.getName());
-        // Load image using Glide (see previous example)
-        Glide.with(context)
-                .load(artist.getImgUrl())
-                .into(holder.imageView);
+        holder.bind(artist);
     }
 
     @Override
@@ -48,14 +43,20 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHo
         return artistsList.size();
     }
 
-    class MyViewHolder extends RecyclerView.ViewHolder {
-        private TextView nameTextView;
-        private ImageView imageView;
+    static class MyViewHolder extends RecyclerView.ViewHolder {
 
-        MyViewHolder(View itemView) {
-            super(itemView);
-            nameTextView = itemView.findViewById(R.id.nameTextView);
-            imageView = itemView.findViewById(R.id.imgArtists);
+        private final ArtistsItemRowBinding binding;
+
+        MyViewHolder(@NonNull ArtistsItemRowBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+
+        void bind(ArtistsModel artist) {
+            binding.nameTextView.setText(artist.getName());
+            Glide.with(binding.getRoot().getContext())
+                    .load(artist.getImgUrl())
+                    .into(binding.imgArtists);
         }
     }
 }
