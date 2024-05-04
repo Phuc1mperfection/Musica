@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/brown"
+    android:background="@color/light_blue"
     tools:context=".Fragment.HomeFragment">
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/container"
@@ -17,14 +17,13 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:fitsSystemWindows="true"
-        android:background="@android:color/transparent">
+        >
 
 
         <androidx.appcompat.widget.Toolbar
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:layout_scrollFlags="scroll"
-            android:background="@color/brown"
 
             >
 
@@ -60,7 +59,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:paddingTop="60dp"
                 android:text="Top Artists"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="16dp" />
 
             <androidx.recyclerview.widget.RecyclerView
@@ -74,7 +73,7 @@
                 android:fontFamily="sans-serif-medium"
                 android:paddingTop="20dp"
                 android:text="Categories"
-                android:textColor="@color/white"
+                android:textColor="@color/black"
                 android:textSize="16dp" />
 
             <androidx.recyclerview.widget.RecyclerView

@@ -29,7 +29,7 @@
                     android:layout_alignParentBottom="true"
                     android:layout_marginTop="8dp"
                     android:layout_weight="1"
-                    android:background="#546E7A"
+                    android:background="@color/blue1"
                     android:gravity="center"
                     android:text="Name"
                     android:textColor="@color/white"

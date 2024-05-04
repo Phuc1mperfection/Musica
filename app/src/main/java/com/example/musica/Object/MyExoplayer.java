@@ -28,6 +28,12 @@ public class MyExoplayer {
             exoPlayer.play();
         }
     }
+    public static void release() {
+        if (exoPlayer != null) {
+            exoPlayer.release();
+            exoPlayer = null;
+        }
+    }
     public static SongModel getCurrentSong() {
         return currentSong;
     }

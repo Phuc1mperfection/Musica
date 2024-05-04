@@ -44,7 +44,6 @@ public class Registration extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         // Find views by ID
-        editTextName = findViewById(R.id.editTextUserName);  // Assuming you have an EditText with id "nameEditText"
         editTextEmail = findViewById(R.id.editTextEmail);
         editTextPassword = findViewById(R.id.editTextPassword);
         btnRegist = findViewById(R.id.button_register);

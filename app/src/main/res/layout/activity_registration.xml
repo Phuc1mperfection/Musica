@@ -8,10 +8,10 @@
 
     <com.google.android.material.textfield.TextInputEditText
 
-    android:id="@+id/editTextEmail"
+        android:id="@+id/editTextEmail"
         android:layout_width="300dp"
         android:layout_height="50dp"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="52dp"
         android:background="@drawable/input_background"
         android:backgroundTint="#fff"
         android:drawableLeft="@drawable/icon__mail_"
@@ -73,30 +73,10 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/editTextUserName"
-        android:layout_width="300dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="40dp"
-        android:background="@drawable/input_background"
-        android:backgroundTint="#fff"
-        android:drawableLeft="@drawable/user"
-        android:drawablePadding="8dp"
-        android:ems="10"
-        android:fontFamily="sans-serif"
-        android:foregroundTint="#fff"
-        android:hint="Name"
-        android:inputType="text"
-        android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/editTextEmail"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.495"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/editTextPassword"
         android:layout_width="300dp"
         android:layout_height="48dp"
-        android:layout_marginBottom="48dp"
+        android:layout_marginBottom="84dp"
         android:background="@drawable/input_background"
         android:backgroundTint="#FFF"
         android:drawableLeft="@drawable/lock"
@@ -119,7 +99,7 @@
         android:layout_height="181dp"
 
 
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="52dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
@@ -128,19 +108,17 @@
 
     <TextView
         android:id="@+id/textView"
-        android:layout_width="172dp"
-        android:layout_height="25dp"
-        android:layout_marginTop="44dp"
+        android:layout_width="185dp"
+        android:layout_height="35dp"
+        android:layout_marginTop="68dp"
         android:text="@string/registration"
         android:textAlignment="center"
         android:textColor="@color/brown"
         android:textFontWeight="@integer/material_motion_duration_long_1"
         android:textSize="22dp"
-        app:layout_constraintBottom_toTopOf="@+id/editTextUserName"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintHorizontal_bias="0.506"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

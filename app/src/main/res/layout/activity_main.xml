@@ -5,13 +5,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/brown"
+    android:background="@color/blue"
     tools:context="com.example.musica.MainActivity">
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:backgroundTint="@color/white"
+        android:backgroundTint="#fff"
         android:contentDescription="@string/add_item"
         android:src="@drawable/baseline_add_24"
         app:layout_anchor="@id/bottomAppBar"
