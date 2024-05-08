@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.musica.Model.ArtistsModel;
 import com.example.musica.R;
-import com.example.musica.databinding.ArtistsItemRowBinding;
+import com.example.musica.databinding.ItemArtistsBinding;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHo
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ArtistsItemRowBinding binding = ArtistsItemRowBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        ItemArtistsBinding binding = ItemArtistsBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new MyViewHolder(binding);
     }
 
@@ -45,9 +45,9 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHo
 
     static class MyViewHolder extends RecyclerView.ViewHolder {
 
-        private final ArtistsItemRowBinding binding;
+        private final ItemArtistsBinding binding;
 
-        MyViewHolder(@NonNull ArtistsItemRowBinding binding) {
+        MyViewHolder(@NonNull ItemArtistsBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }

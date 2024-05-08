@@ -1,12 +1,18 @@
 package com.example.musica.LoginHandle;
 
+import static androidx.constraintlayout.motion.utils.Oscillator.TAG;
+
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.musica.Model.PlaylistModel;
 import com.example.musica.R;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputEditText;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,8 +36,16 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.ArrayList;
+
 public class Registration extends AppCompatActivity {
     Button btnRegist;
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    CollectionReference playlistsRef = db.collection("playlists");
     TextView toLogin;
     private TextInputEditText editTextName, editTextEmail, editTextPassword;
     private FirebaseAuth mAuth;
@@ -60,15 +74,10 @@ public class Registration extends AppCompatActivity {
         });
         // Register button click listener
         btnRegist.setOnClickListener(v -> {
-            String name = String.valueOf(editTextName.getText());
             String email = String.valueOf(editTextEmail.getText());
             String password = String.valueOf(editTextPassword.getText());
 
             // Input validation
-            if (isEmpty(name)) {
-                showError(editTextName, "Please enter your name!");
-                return;
-            }
             if (isEmpty(email)) {
                 showError(editTextEmail, "Please enter your email!");
                 return;
@@ -83,6 +92,26 @@ public class Registration extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Toast.makeText(Registration.this, "Registration successful!", Toast.LENGTH_SHORT).show();
+                            // Thêm playlist "Liked song" vào Firestore cho người dùng mới đăng ký thành công
+                            String userID = mAuth.getCurrentUser().getUid();
+                            FirebaseFirestore db = FirebaseFirestore.getInstance();
+                            CollectionReference playlistsRef = db.collection("playlists");
+                            PlaylistModel likedPlaylist = new PlaylistModel("Liked song", userID, "", new ArrayList<>());
+                            playlistsRef.add(likedPlaylist)
+                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                        @Override
+                                        public void onSuccess(DocumentReference documentReference) {
+                                            Log.d(TAG, "Liked song playlist added with ID: " + documentReference.getId());
+                                            // Hiển thị thông báo hoặc thực hiện các hành động khác sau khi thêm playlist thành công
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "Error adding liked song playlist", e);
+                                            // Xử lý trường hợp thêm playlist thất bại (nếu cần)
+                                        }
+                                    });
                             // Handle successful registration (e.g., navigate to main activity)
                         } else {
                             handleRegistrationError(task.getException());
@@ -91,6 +120,7 @@ public class Registration extends AppCompatActivity {
 
         });
     }
+
 
     @Override
     public void onStart() {

@@ -1,4 +1,4 @@
-package com.example.musica.Fragment;
+package com.example.musica.Fragment.BottomMenuFragment;
 
 import android.os.Bundle;
 

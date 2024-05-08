@@ -1,4 +1,4 @@
-package com.example.musica.Fragment;
+package com.example.musica.Fragment.BottomMenuFragment;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -14,7 +14,6 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.musica.LoginHandle.Login;
-import com.example.musica.LoginHandle.Registration;
 import com.example.musica.MainActivity;
 import com.example.musica.R;
 import com.google.firebase.auth.FirebaseAuth;

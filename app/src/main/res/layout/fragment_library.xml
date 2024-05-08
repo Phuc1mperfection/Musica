@@ -5,8 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.LibraryFragment"
-    android:background="@color/light_blue">
+    tools:context=".Fragment.BottomMenuFragment.LibraryFragment"
+    android:background="@color/white">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/container"
@@ -16,90 +16,87 @@
 
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appbar"
-            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fitsSystemWindows="true">
+            android:fitsSystemWindows="true"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
             <androidx.cardview.widget.CardView
-                android:layout_alignParentTop="true"
                 android:layout_width="match_parent"
-                android:background="@color/white"
-                android:layout_marginBottom="2dp"
                 android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:layout_marginBottom="2dp"
+                android:background="@color/white"
                 app:cardElevation="5dp">
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="#153448"
-                    >
+                    android:background="#153448">
 
                     <androidx.appcompat.widget.Toolbar
-                        android:layout_marginTop="15dp"
-                        android:layout_alignParentTop="true"
-                        android:id="@+id/toolbar1"
+                        android:id="@+id/toolbar"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_marginTop="30dp">
 
                         <de.hdodenhof.circleimageview.CircleImageView
-                            android:layout_marginTop="3dp"
+                            android:id="@+id/profile_image"
                             android:layout_width="30dp"
                             android:layout_height="30dp"
-                            android:id="@+id/profile_image"
+                            android:layout_marginTop="3dp"
                             android:src="@drawable/default_avatar"
-
-                            app:civ_border_color="#FF000000"/>
+                            app:civ_border_color="#FF000000" />
 
                         <TextView
-                            android:textColor="@color/white"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="30dp"
                             android:text="Your Library"
+                            android:textColor="@color/white"
                             android:textSize="25sp"
-                            android:textStyle="bold"
-                            android:layout_marginStart="30dp"/>
-
+                            android:textStyle="bold" />
 
                         <ImageButton
-                            android:layout_gravity="right"
                             android:id="@+id/addPlaylistBtn"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_alignParentEnd="true"
+                            android:layout_gravity="right"
                             android:layout_marginEnd="15dp"
+                            android:background="@android:color/transparent"
                             android:contentDescription="addPlaylist"
                             android:src="@drawable/baseline_add_24"
-                            tools:ignore="TouchTargetSizeCheck"
-                            android:background="@android:color/transparent"
-                            />
+                            tools:ignore="TouchTargetSizeCheck" />
                     </androidx.appcompat.widget.Toolbar>
 
                     <androidx.cardview.widget.CardView
-                        android:layout_marginStart="15dp"
-                        android:layout_marginEnd="15dp"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginBottom="10dp"
-                        app:cardCornerRadius="4dp"
-                        android:layout_below="@+id/toolbar1"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/toolbar"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginTop="10dp"
+                        android:layout_marginEnd="15dp"
+                        android:layout_marginBottom="10dp"
+                        app:cardCornerRadius="4dp">
 
                         <androidx.appcompat.widget.SearchView
                             android:id="@+id/searchBtn"
-                            app:iconifiedByDefault="false"
-                            android:background="#76ABAE"
-                            android:layout_gravity="top"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content" />
-
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="top"
+                            android:background="#76ABAE"
+                            app:iconifiedByDefault="false" />
                     </androidx.cardview.widget.CardView>
 
                 </RelativeLayout>
+
             </androidx.cardview.widget.CardView>
         </com.google.android.material.appbar.AppBarLayout>
 
         <RelativeLayout
+            android:id="@+id/relativeLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@+id/appbar"
@@ -108,7 +105,8 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/musicRecyclerViewLibrary"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="1000dp"
+                android:layout_marginTop="10dp" />
 
         </RelativeLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

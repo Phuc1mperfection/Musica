@@ -1,9 +1,8 @@
-package com.example.musica.Fragment;
+package com.example.musica.Fragment.BottomMenuFragment;
 
 import static android.widget.Toast.LENGTH_SHORT;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,16 +24,12 @@ import com.example.musica.R;
 
 import java.util.ArrayList;
 import java.util.List;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.cardview.widget.CardView;
 public class HomeFragment extends Fragment {
 
     private List<ArtistsModel> artistsList;
@@ -56,6 +51,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         setupRecyclerView();
         prepareArtistsData();
         setupCategoriesRecyclerView();

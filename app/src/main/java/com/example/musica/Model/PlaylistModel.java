@@ -1,21 +1,19 @@
 package com.example.musica.Model;
 
+import java.util.List;
+
 public class PlaylistModel {
     private String name;
-    private int id;
-    private String imageUrl;
-    private int numberOfSongs;
-    private String description;
+    private String userID;
+    private String imgUrl;
+    private List<String> songs;
 
-    public PlaylistModel(String name, int id, String imageUrl, int numberOfSongs, String description) {
+    public PlaylistModel(String name, String userID, String imgUrl, List<String> songs) {
         this.name = name;
-        this.id = id;
-        this.imageUrl = imageUrl;
-        this.numberOfSongs = numberOfSongs;
-        this.description = description;
+        this.userID = userID;
+        this.imgUrl = imgUrl;
+        this.songs = songs;
     }
-
-    // Getters và setters cho các thuộc tính
 
     public String getName() {
         return name;
@@ -25,35 +23,29 @@ public class PlaylistModel {
         this.name = name;
     }
 
-    public int getId() {
-        return id;
+    public String getUserID() {
+        return userID;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImgUrl() {
+        return imgUrl;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImgUrl(String imgUrl) {
+        this.imgUrl = imgUrl;
     }
 
-    public int getNumberOfSongs() {
-        return numberOfSongs;
+    public List<String> getSongs() {
+        return songs;
     }
 
-    public void setNumberOfSongs(int numberOfSongs) {
-        this.numberOfSongs = numberOfSongs;
+    public void setSongs(List<String> songs) {
+        this.songs = songs;
     }
+// Getters và setters cho các thuộc tính
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

@@ -5,7 +5,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.UserFragment">
+    tools:context=".Fragment.BottomMenuFragment.UserFragment"
+    android:background="@color/white"
+    >
 
     <!-- TODO: Update blank fragment layout -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -21,10 +23,11 @@
             android:fitsSystemWindows="true">
 
             <androidx.appcompat.widget.Toolbar
+                android:layout_marginTop="30dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_scrollFlags="scroll"
-                android:background="@color/blue"
+                android:background="@color/blue1"
 
                 >
 
@@ -52,11 +55,14 @@
 
                 <TextView
                     android:id="@+id/welcome"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="40dp"
                     android:layout_width="match_parent"
                     android:textStyle="bold"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"/>
+                    android:layout_gravity="center"
+                    android:textSize="16sp"
+                    android:textColor="@color/black"
+                    />
                 <LinearLayout
                     android:id="@+id/profileInfo"
                     android:layout_width="match_parent"
@@ -106,7 +112,7 @@
                                 android:textColor="@color/black"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Change You account infomation"
+                                android:text="Change your account infomation"
                                 android:textSize="9pt"
                                 android:textStyle="bold"
                                 android:layout_marginStart="15dp"/>

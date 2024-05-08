@@ -9,7 +9,9 @@
         android:layout_margin="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="10dp">
+        app:cardCornerRadius="10dp"
+        android:id="@+id/create_playlist_diaglog"
+        >
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -55,9 +57,10 @@
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/editTextDialog"
+                        android:textStyle="bold"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-
+                        android:backgroundTint="@android:color/transparent"
                         android:gravity="center"
                         android:hint="My playlist" />
 
@@ -73,14 +76,17 @@
 
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/cancel_button"
                     android:layout_alignParentStart="true"
                     android:text="Cancel"
                     android:layout_marginStart="30dp"
                     android:layout_marginBottom="20dp"
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    app:cardBackgroundColor="@color/brown"
-                    app:cardCornerRadius="5dp">
+                    app:cardBackgroundColor="#C40C0C"
+                    app:cardCornerRadius="5dp"
+
+                    >
 
                     <RelativeLayout
                         android:layout_width="match_parent"
@@ -92,9 +98,11 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Cancel"
+                            android:textColor="@color/white"
                             android:textSize="15sp"
                             android:textStyle="bold"
-                            android:textColor="@color/white"/>
+
+                            />
 
                     </RelativeLayout>
 
@@ -107,7 +115,7 @@
                     android:layout_marginEnd="30dp"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
-                    app:cardBackgroundColor="@color/brown"
+                    app:cardBackgroundColor="@color/green"
                     app:cardCornerRadius="5dp">
 
                     <RelativeLayout

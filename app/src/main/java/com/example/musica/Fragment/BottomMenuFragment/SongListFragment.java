@@ -1,6 +1,5 @@
-package com.example.musica.Fragment;
+package com.example.musica.Fragment.BottomMenuFragment;
 
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.os.Bundle;
 import android.util.Log;
 
 import com.bumptech.glide.Glide;
@@ -23,7 +21,6 @@ import com.example.musica.Model.CategoryModel;
 import com.example.musica.R;
 import com.example.musica.databinding.FragmentSongListBinding;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class SongListFragment extends Fragment {

@@ -1,9 +1,6 @@
 package com.example.musica.Adapter;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent; // Not used in this update, but included for clarity
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +14,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.example.musica.Fragment.SongListFragment;
+import com.example.musica.Fragment.BottomMenuFragment.SongListFragment;
 import com.example.musica.Model.CategoryModel;
 import com.example.musica.R;
 
@@ -36,7 +33,7 @@ public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.Ca
     @NonNull
     @Override
     public CategoriesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.categories_item_row, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_categories, parent, false);
         return new CategoriesViewHolder(view);
     }
 

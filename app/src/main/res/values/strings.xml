@@ -5,4 +5,5 @@
     <string name="add_item">Add item</string>
     <string name="registration">REGISTRATION</string>
     <string name="submit">Submit</string>
+    <string name="title_activity_playlist_detail">PlaylistDetailActivity</string>
 </resources>
