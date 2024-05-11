@@ -6,9 +6,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
+
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -17,23 +15,28 @@ import com.bumptech.glide.Glide;
 import com.example.musica.Model.PlaylistModel;
 import com.example.musica.PlaylistDetailActivity;
 import com.example.musica.R;
-import com.example.musica.databinding.ItemArtistsBinding;
 import com.example.musica.databinding.ItemPlaylistBinding;
 
 import java.util.List;
 
 public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder> {
 
+    private static final int TYPE_PLAYLIST_1 = 1;
+    private static final int TYPE_PLAYLIST_add_song_to_playlist = 2;
+
     private static List<PlaylistModel> playlistList;
     private Context context;
-    private ImageButton imageButton;
+    private boolean showCheckbox = false;
 
     // Constructor
     public PlaylistAdapter(List<PlaylistModel> playlistList, Context context) {
         this.playlistList = playlistList;
         this.context = context;
     }
-
+    public void setShowCheckbox(boolean showCheckbox) {
+        this.showCheckbox = showCheckbox;
+        notifyDataSetChanged(); // Cập nhật lại RecyclerView khi showCheckbox thay đổi
+    }
     @NonNull
     @Override
     public PlaylistViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -55,7 +58,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
 
     // ViewHolder class
     public static class PlaylistViewHolder extends RecyclerView.ViewHolder {
-        private ItemPlaylistBinding binding;
+        private final ItemPlaylistBinding binding;
         public PlaylistViewHolder(@NonNull ItemPlaylistBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
@@ -67,6 +70,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
                         // Lấy playlist được chọn tại vị trí position
                         PlaylistModel selectedPlaylist = playlistList.get(position);
                         Log.d("PlaylistAdapter", "Clicked playlist name: " + selectedPlaylist.getName());
+                        Log.d("PlaylistAdapter", "playlist song: " + selectedPlaylist.getSongs());
 
                         // Tạo Intent để chuyển sang PlaylistDetailActivity
                         Intent intent = new Intent(view.getContext(), PlaylistDetailActivity.class);
@@ -82,6 +86,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
 
         public void bind(PlaylistModel playlist) {
             // Set data to views
+            binding.namePlaylist.setText(playlist.getName());
             if (playlist.getName().equals("Liked song")) {
                 // Nếu tên playlist là "Liked songs", sử dụng ảnh mặc định
                 Glide.with(itemView)
@@ -93,9 +98,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
                         .load(playlist.getImgUrl())
                         .into(binding.imgPlaylist);
             }
-
             binding.namePlaylist.setText(playlist.getName());
-
             int songCount = playlist.getSongs().size();
             String songCountText = songCount + " song" + (songCount != 1 ? "s" : "");
             binding.songCount.setText(songCountText);
