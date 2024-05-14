@@ -1,59 +1,115 @@
 package com.example.musica;
+import static com.example.musica.Adapter.PlaylistAdapter.playlistList;
 
+import android.app.Dialog;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.media3.exoplayer.ExoPlayer;
 
-import com.example.musica.Object.MyExoplayer;
-import com.example.musica.R;
-import com.example.musica.databinding.*;
-import com.example.musica.Model.SongModel;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.musica.Adapter.PlaylistAdapter;
+import com.example.musica.Fragment.SubFragment.AddSongListFragment;
+import com.example.musica.Fragment.SubFragment.AddSongToPlaylistFragment;
+import com.example.musica.Model.SongModel;
+import com.example.musica.Object.MyExoplayer;
+import com.example.musica.databinding.ActivityMusicPlayerBinding;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.util.Objects;
 
 public class MusicPlayerActivity extends AppCompatActivity {
     private SeekBar seekBar;
+    FirebaseUser users;
+    FirebaseAuth auth;
     private TextView currentTimeTextView;
     private TextView totalTimeTextView;
-    private boolean isSeekBarDragging = false;
-    private Handler handler = new Handler();
-    private ActivityMusicPlayerBinding binding;
-    private ExoPlayer exoPlayer;
-    private ImageView imgSongs, pausePlayButton;
-    private boolean isPlaying = false;
+    private final boolean isSeekBarDragging = false;
+    private final Handler handler = new Handler();
+    private ImageView pausePlayButton;
+    private final boolean isPlaying = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMusicPlayerBinding.inflate(getLayoutInflater());
+        PlaylistAdapter playlistAdapter = new PlaylistAdapter(playlistList, this);
+        com.example.musica.databinding.ActivityMusicPlayerBinding binding = ActivityMusicPlayerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         SongModel currentSong = MyExoplayer.getCurrentSong();
-        // Initialize views
+        String songId = getIntent().getStringExtra("songId");
+        Bundle bundle = new Bundle();
+        bundle.putString("songId", songId);
+        playlistAdapter.setSongId(songId);
+        playlistAdapter.setCurrentSongId(songId);
 
-        imgSongs = binding.imgSongs;
+        AddSongToPlaylistFragment addSongListFragment = new AddSongToPlaylistFragment();
+        addSongListFragment.setArguments(bundle);
+        // Log để kiểm tra songId đã lấy được hay chưa
+        Log.d("MusicPlayerActivity", "Song ID: " + songId);
+
+        // Initialize views
         pausePlayButton = binding.pausePlay;
         seekBar = binding.seekBar;
         currentTimeTextView = binding.currentTime;
         totalTimeTextView = binding.totalTime;
+        ImageView backBtn = binding.backBtn;
+        if (bundle != null) {
+            String userId = bundle.getString("userId");
 
-        // Set click listener for pause/play button
-        pausePlayButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                togglePause();
+            if (userId != null) {
+                users = FirebaseAuth.getInstance().getCurrentUser();
+
             }
+        } else {
+            // Bundle không tồn tại, xử lý tương ứng nếu cần
+            Log.d("MusicPlayerActivity", "Bundle is null");
+        }
+        binding.moreBtn.setOnClickListener(v -> {
+            // Create a dialog and set the layout
+            Dialog dialog = new Dialog(MusicPlayerActivity.this);
+            dialog.setContentView(R.layout.more_option_dialog);
+            // Set dialog properties
+            Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setGravity(Gravity.BOTTOM);
+            dialog.getWindow().setDimAmount(0.8f);
+            dialog.setCancelable(true);
+
+            LinearLayout layoutAdd = dialog.findViewById(R.id.layoutAdd);
+            ImageView backBtn1 = dialog.findViewById(R.id.backBtn1);
+            layoutAdd.setOnClickListener(v1 -> {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+                transaction.add(android.R.id.content, addSongListFragment);
+                transaction.addToBackStack(null);
+                transaction.commit();
+                dialog.dismiss();
+            });
+            // Show the dialog
+            dialog.show();
         });
+        backBtn.setOnClickListener(v -> finish());
+        pausePlayButton.setOnClickListener(v -> togglePause());
 
         // Set up SeekBar change listener
         seekBar.setOnSeekBarChangeListener(seekBarChangeListener);
-
+        backBtn = findViewById(R.id.backBtn);
         // Update SeekBar and time TextViews
         updateSeekBar();
         // Set up handler to update SeekBar and time TextViews periodically
@@ -67,10 +123,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
                     .into(binding.imgSongs);
         }
 
-        // Get the ExoPlayer instance from MyExoplayer
-        exoPlayer = MyExoplayer.getInstance();
     }
-
     // SeekBar change listener
     private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
@@ -104,7 +157,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     };
 
-    // Method to update SeekBar and time TextViews
     private void updateSeekBar() {
         ExoPlayer exoPlayer = MyExoplayer.getInstance();
         if (exoPlayer != null) {
@@ -123,7 +175,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     }
 
-    // Method to toggle pause/play
     private void togglePause() {
         ExoPlayer exoPlayer = MyExoplayer.getInstance();
         if (exoPlayer != null) {
@@ -138,7 +189,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     }
 
-    // Method to format time in mm:ss format
     private String formatTime(int millis) {
         int seconds = millis / 1000;
         int minutes = seconds / 60;

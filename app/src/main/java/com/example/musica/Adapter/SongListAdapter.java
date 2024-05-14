@@ -6,8 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -18,12 +16,13 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.musica.Model.SongModel;
 import com.example.musica.MusicPlayerActivity;
 import com.example.musica.Object.MyExoplayer;
-import com.example.musica.R; // Replace with your actual R.java file
 import com.example.musica.databinding.SongsItemRowBinding;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyViewHolder> {
@@ -31,7 +30,11 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
     private final List<String> songIdList;
 
     public SongListAdapter(List<String> songIdList) {
-        this.songIdList = songIdList;
+        if (songIdList == null) {
+            this.songIdList = new ArrayList<>();
+        } else {
+            this.songIdList = songIdList;
+        }
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
@@ -60,21 +63,34 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
                                     Glide.with(binding.getRoot().getContext())
                                             .load(song.getImgUrl())
                                             .apply(RequestOptions.centerCropTransform()
-                                                    .transform(new RoundedCorners(32)))
+                                                    .transform(new RoundedCorners(16)))
                                             .into(binding.imgSongs);
                                     binding.getRoot().setOnClickListener(new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
                                             Context context = v.getContext();
                                             MyExoplayer.startPlaying(context, song);
-                                            context.startActivity(new Intent(context, MusicPlayerActivity.class));
 
+                                            // Tạo Intent và thêm songId vào Intent
+                                            Intent intent = new Intent(context, MusicPlayerActivity.class);
+                                            intent.putExtra("songId", songId); // Thêm songId vào Intent
+                                            context.startActivity(intent);
                                         }
                                     });
                                 }
                             } else {
                                 // Handle the case where the document doesn't exist
+                                Log.d("SongListAdapter", "Document does not exist: " + songId);
+                                // You can choose to show a message or do nothing
                             }
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            // Handle the case where getting song data fails
+                            Log.e("SongListAdapter", "Failed to get song data: " + e.getMessage());
+                            // You can choose to show a message or do nothing
                         }
                     });
         }
@@ -90,7 +106,10 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        holder.bindData(songIdList.get(position));
+        // Check if the songIdList is not empty before accessing its elements
+        if (!songIdList.isEmpty() && position >= 0 && position < songIdList.size()) {
+            holder.bindData(songIdList.get(position));
+        }
     }
 
     @Override

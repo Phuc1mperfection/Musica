@@ -9,6 +9,5 @@ public class Receiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         int actionMusic = intent.getIntExtra("action_music", 0);
-
     }
 }

@@ -77,6 +77,14 @@ public class SongListFragment extends Fragment {
         if (selectedCategory != null) {
             txtCategoryName.setText(selectedCategory.getName());
 
+            List<String> songs = selectedCategory.getSongs();
+            if (songs != null) {
+                Log.d("SongListFragment", "Received songs: " + songs);
+                setupSongListRecycler(recyclerView);
+            } else {
+                Log.w("SongListFragment", "No songs data received!");
+            }
+
             // Check for image URL and use Glide (assuming proper Glide initialization)
             if (selectedCategory.getImgUrl() != null) {
                 Glide.with(requireContext())
@@ -91,6 +99,7 @@ public class SongListFragment extends Fragment {
         } else {
             Log.w("SongListFragment", "No CategoryModel object received!");
         }
+
     }
     private void setupSongListRecycler(RecyclerView recyclerView) {
         // Check if song data is available in the category object

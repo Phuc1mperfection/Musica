@@ -23,6 +23,7 @@ import com.example.musica.Fragment.BottomMenuFragment.HomeFragment;
 import com.example.musica.Fragment.BottomMenuFragment.LibraryFragment;
 import com.example.musica.Fragment.BottomMenuFragment.SearchFragment;
 import com.example.musica.Fragment.BottomMenuFragment.UserFragment;
+import com.example.musica.Fragment.SubFragment.AddSongToPlaylistFragment;
 import com.example.musica.Model.PlaylistModel;
 import com.example.musica.databinding.ActivityMainBinding;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -52,10 +53,16 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "User ID: " + userId);
             // Gọi fragment LibraryFragment và truyền userId vào đó
             LibraryFragment libraryFragment = new LibraryFragment();
+            AddSongToPlaylistFragment addSongToPlaylistFragment = new AddSongToPlaylistFragment();
+
             Bundle bundle = new Bundle();
             bundle.putString("userId", userId);
+
+
             libraryFragment.setArguments(bundle);
+            addSongToPlaylistFragment.setArguments(bundle);
             replaceFragment(libraryFragment);
+            replaceFragment(addSongToPlaylistFragment);
         } else {
             Log.d("MainActivity", "User not logged in");
         }

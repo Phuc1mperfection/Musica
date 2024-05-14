@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/playlistdetailsFragment"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.SubFragment.PlaylistDetailFragment">
+    tools:context=".PlaylistDetailActivity">
 
     <!-- TODO: Update blank fragment layout -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
@@ -48,7 +47,16 @@
                         android:textSize="25sp"
                         android:textStyle="bold"
                         android:layout_marginStart="30dp"/>
+                <ImageView
 
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:id="@+id/addSongs"
+                    android:src="@drawable/baseline_playlist_add_24"
+                    android:layout_gravity="right"
+                    android:layout_marginRight="15dp"
+
+                    />
 
 
             </androidx.appcompat.widget.Toolbar>
@@ -87,7 +95,7 @@
                 android:id="@+id/musicRecyclerViewPlaylist"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#f5f6fa" />
+                android:background="#fff" />
         </RelativeLayout>
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
