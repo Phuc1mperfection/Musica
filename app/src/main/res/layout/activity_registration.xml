@@ -16,13 +16,13 @@
 
         <ImageView
             android:id="@+id/imageView"
-            android:layout_width="232dp"
-            android:layout_height="284dp"
+            android:layout_width="169dp"
+            android:layout_height="271dp"
             android:layout_marginTop="32dp"
             android:layout_marginBottom="24dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
-            app:srcCompat="@drawable/saxophone_svgrepo_com" />
+            app:srcCompat="@drawable/registration" />
 
         <TextView
             android:id="@+id/textView"

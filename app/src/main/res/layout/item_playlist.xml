@@ -4,61 +4,63 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    app:cardCornerRadius="8dp"
     android:layout_marginStart="20dp"
-
     android:layout_marginEnd="20dp"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="8dp"
     android:foreground="?selectableItemBackground">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-
-        >
+        android:layout_height="match_parent">
 
         <ImageView
             android:id="@+id/imgPlaylist"
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/like_playlist"
-             /> <LinearLayout
-        android:id="@+id/textContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="16dp"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-      android:orientation="vertical"
-        android:padding="8dp">
+            android:src="@drawable/like_playlist" />
 
-        <TextView
-            android:id="@+id/namePlaylist"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/infoContainer"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="This is a Playlist Title"
-            android:textColor="@color/white"
-            android:textIsSelectable="false"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:layout_below="@id/imgPlaylist">
 
-        <TextView
-            android:id="@+id/songCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="10 Songs"
-            android:textColor="@color/white"
-            android:textIsSelectable="false"
-            android:textSize="14sp" />
-    </LinearLayout>
-        <CheckBox
-            android:id="@+id/checkboxAddToPlaylist"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:padding="8dp" />
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/namePlaylist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="This is a Playlist Title"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/songCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="10 Songs"
+                    android:textColor="@color/black"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/checkboxAddToPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:buttonTint="@color/black" />
+        </LinearLayout>
 
     </RelativeLayout>
-
 </androidx.cardview.widget.CardView>
