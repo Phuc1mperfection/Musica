@@ -33,6 +33,26 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Objects;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.media3.exoplayer.ExoPlayer;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.musica.Model.SongModel;
+import com.example.musica.Object.MyExoplayer;
+import com.example.musica.databinding.ActivityMusicPlayerBinding;
+import com.example.musica.databinding.MiniPlayerLayoutBinding;
 
 public class MusicPlayerActivity extends AppCompatActivity {
     private SeekBar seekBar;
@@ -42,15 +62,71 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private TextView totalTimeTextView;
     private final boolean isSeekBarDragging = false;
     private final Handler handler = new Handler();
-    private ImageView pausePlayButton;
+    private ImageView imgSongs, pausePlayButton;
     private final boolean isPlaying = false;
+    private ActivityMusicPlayerBinding binding;
+    private ExoPlayer exoPlayer;
+    private ImageView backBtn;
+    private View fullPlayer, miniPlayer;
+    private ImageView miniImgSongs, miniPausePlay;
+    private TextView miniNameSongs, miniArtistsSongs;
+    private GestureDetector gestureDetector;
+    private RelativeLayout parentLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PlaylistAdapter playlistAdapter = new PlaylistAdapter(playlistList, this);
-        com.example.musica.databinding.ActivityMusicPlayerBinding binding = ActivityMusicPlayerBinding.inflate(getLayoutInflater());
+
+        // Initialize binding before calling setContentView
+        binding = ActivityMusicPlayerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        // Initialize views
+        fullPlayer = binding.fullPlayer;
+        miniPlayer = binding.miniPlayer.getRoot();
+        imgSongs = binding.imgSongs;
+        pausePlayButton = binding.pausePlay;
+        seekBar = binding.seekBar;
+        currentTimeTextView = binding.currentTime;
+        totalTimeTextView = binding.totalTime;
+        backBtn = binding.backBtn;
+        parentLayout = binding.parentLayout;
+
+        // Mini player views
+        MiniPlayerLayoutBinding miniPlayerBinding = MiniPlayerLayoutBinding.bind(miniPlayer);
+        miniImgSongs = miniPlayerBinding.miniImgSongs;
+        miniPausePlay = miniPlayerBinding.miniPausePlay;
+        miniNameSongs = miniPlayerBinding.miniNameSongs;
+        miniArtistsSongs = miniPlayerBinding.miniArtistsSongs;
+
+        // Back button listener
+        backBtn.setOnClickListener(view -> minimizePlayer());
+
+        // Set up gesture detector for swipe down to minimize
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1.getY() - e2.getY() > 50) {
+                    minimizePlayer();
+                    return true;
+                }
+                return false;
+            }
+        });
+
+        parentLayout.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+
+        // Set touch listener for full player to detect swipe gestures
+        fullPlayer.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+
+        // Set click listener for pause/play button
+        pausePlayButton.setOnClickListener(v -> togglePause());
+
+        // Mini player click listener to expand full player
+        miniPlayer.setOnClickListener(v -> expandFullPlayer());
+        miniPausePlay.setOnClickListener(v -> togglePause());
+
+        PlaylistAdapter playlistAdapter = new PlaylistAdapter(playlistList, this);
         SongModel currentSong = MyExoplayer.getCurrentSong();
         String songId = getIntent().getStringExtra("songId");
         Bundle bundle = new Bundle();
@@ -60,26 +136,28 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
         AddSongToPlaylistFragment addSongListFragment = new AddSongToPlaylistFragment();
         addSongListFragment.setArguments(bundle);
-        // Log để kiểm tra songId đã lấy được hay chưa
+
+        // Log to check if songId has been retrieved
         Log.d("MusicPlayerActivity", "Song ID: " + songId);
 
-        // Initialize views
-        pausePlayButton = binding.pausePlay;
-        seekBar = binding.seekBar;
-        currentTimeTextView = binding.currentTime;
-        totalTimeTextView = binding.totalTime;
-        ImageView backBtn = binding.backBtn;
-        if (bundle != null) {
-            String userId = bundle.getString("userId");
-
-            if (userId != null) {
-                users = FirebaseAuth.getInstance().getCurrentUser();
-
-            }
-        } else {
-            // Bundle không tồn tại, xử lý tương ứng nếu cần
-            Log.d("MusicPlayerActivity", "Bundle is null");
+        if (currentSong != null) {
+            binding.nameSongs.setText(currentSong.getName());
+            binding.artistsSongs.setText(currentSong.getArtists());
+            Glide.with(binding.getRoot().getContext())
+                    .load(currentSong.getImgUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(binding.imgSongs);
         }
+
+        if (currentSong != null) {
+            miniNameSongs.setText(currentSong.getName());
+            miniArtistsSongs.setText(currentSong.getArtists());
+            Glide.with(this)
+                    .load(currentSong.getImgUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(miniImgSongs);
+        }
+
         binding.moreBtn.setOnClickListener(v -> {
             // Create a dialog and set the layout
             Dialog dialog = new Dialog(MusicPlayerActivity.this);
@@ -101,29 +179,23 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 transaction.commit();
                 dialog.dismiss();
             });
+
             // Show the dialog
             dialog.show();
         });
-        backBtn.setOnClickListener(v -> finish());
+
         pausePlayButton.setOnClickListener(v -> togglePause());
 
         // Set up SeekBar change listener
         seekBar.setOnSeekBarChangeListener(seekBarChangeListener);
-        backBtn = findViewById(R.id.backBtn);
+
         // Update SeekBar and time TextViews
         updateSeekBar();
+
         // Set up handler to update SeekBar and time TextViews periodically
         handler.postDelayed(seekBarUpdater, 1000); // Update every second
-        if (currentSong != null) {
-            binding.nameSongs.setText(currentSong.getName());
-            binding.artistsSongs.setText(currentSong.getArtists());
-            Glide.with(binding.getRoot().getContext())
-                    .load(currentSong.getImgUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(binding.imgSongs);
-        }
-
     }
+
     // SeekBar change listener
     private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
@@ -182,9 +254,11 @@ public class MusicPlayerActivity extends AppCompatActivity {
             if (isPlaying) {
                 exoPlayer.pause();
                 pausePlayButton.setImageResource(R.drawable.baseline_play_circle_24);
+                miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
             } else {
                 exoPlayer.play();
                 pausePlayButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
+                miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
             }
         }
     }
@@ -202,5 +276,17 @@ public class MusicPlayerActivity extends AppCompatActivity {
         }
     }
 
+    private void minimizePlayer() {
+        fullPlayer.setVisibility(View.GONE);
+        miniPlayer.setVisibility(View.VISIBLE);
+        miniPlayer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_in));
+    }
 
+    // Method to expand full player
+
+    private void expandFullPlayer() {
+        miniPlayer.setVisibility(View.GONE);
+        fullPlayer.setVisibility(View.VISIBLE);
+        fullPlayer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out));
+    }
 }

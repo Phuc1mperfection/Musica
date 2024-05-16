@@ -14,6 +14,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.musica.Fragment.BottomMenuFragment.SongListFragment;
 import com.example.musica.Model.CategoryModel;
 import com.example.musica.R;
@@ -67,8 +68,11 @@ public class CategoriesAdapter extends RecyclerView.Adapter<CategoriesAdapter.Ca
         if (category.getImgUrl() != null) {
             Glide.with(context)
                     .load(category.getImgUrl())
+
                     .placeholder(R.drawable.saxophone_svgrepo_com) // Placeholder image while loading
+                    .transform(new RoundedCorners(16))
                     .into(holder.imgCategories);
+
         } else {
             // If the image URL is null, set a default placeholder image
             holder.imgCategories.setImageResource(R.drawable.baseline_home_24);

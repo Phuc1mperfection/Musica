@@ -26,14 +26,17 @@ import com.example.musica.Fragment.BottomMenuFragment.UserFragment;
 import com.example.musica.Fragment.SubFragment.AddSongToPlaylistFragment;
 import com.example.musica.Model.PlaylistModel;
 import com.example.musica.databinding.ActivityMainBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 
@@ -58,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
             Bundle bundle = new Bundle();
             bundle.putString("userId", userId);
 
-
             libraryFragment.setArguments(bundle);
             addSongToPlaylistFragment.setArguments(bundle);
             replaceFragment(libraryFragment);
@@ -67,8 +69,13 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "User not logged in");
         }
 
+        // Kiểm tra intent để xác định xem cần mở HomeFragment hay không
+        if (getIntent().getBooleanExtra("goToHomeFragment", false)) {
+            replaceFragment(new HomeFragment());
+        } else {
+            replaceFragment(new HomeFragment());  // Load HomeFragment mặc định
+        }
 
-        replaceFragment(new HomeFragment());
         binding.bottomNavigationView.setBackground(null);
         binding.floatingbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -93,66 +100,55 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-    // Trong phương thức replaceFragment của MainActivity
     private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        // Lấy thông tin người dùng hiện tại từ Firebase Authentication
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
 
-            // Tạo Bundle và đặt userId vào đó
             Bundle bundle = new Bundle();
             bundle.putString("userId", userId);
 
-            // Set bundle vào fragment trước khi thay thế
             fragment.setArguments(bundle);
 
-            // Thực hiện thay thế fragment
             fragmentTransaction.replace(R.id.frame_layout, fragment);
-            fragmentTransaction.addToBackStack(null); // Add fragment to back stack
+            fragmentTransaction.addToBackStack(null);
             fragmentTransaction.commit();
         } else {
-            // Xử lý khi không có người dùng hiện tại
             Log.d("MainActivity", "No current user");
         }
     }
+
     private void openCreatePlaylistAlertDialog() {
-        // Tạo dialog và thiết lập các thành phần của nó
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         LayoutInflater inflater = this.getLayoutInflater();
 
-        // Inflate layout cho dialog
         View dialogView = inflater.inflate(R.layout.create_playlist_dialog, null);
         builder.setView(dialogView);
 
         AlertDialog dialog = builder.create();
         dialog.show();
-        // Thiết lập các thành phần trong layout dialog
+
         TextInputEditText inputDialog = dialogView.findViewById(R.id.editTextDialog);
         CardView confirmButton = dialogView.findViewById(R.id.confirm_button);
         CardView cancelButton = dialogView.findViewById(R.id.cancel_button);
         mAuth = FirebaseAuth.getInstance();
         String userId = mAuth.getUid();
         playlistName = String.valueOf(inputDialog.getText());
+
         if (!playlistName.isEmpty()) {
-            // Thêm playlist vào Firestore
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             CollectionReference playlistsRef = db.collection("playlists");
 
-            // Tạo một object PlaylistModel
             PlaylistModel playlist = new PlaylistModel(playlistName, userId,"https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41",new ArrayList<>());
 
-            // Thêm playlist vào Firestore
             playlistsRef.add(playlist)
                     .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
                             Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
-                            // Đóng dialog sau khi thêm thành công
                             dialog.dismiss();
                         }
                     })
@@ -160,61 +156,65 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             Log.w(TAG, "Error adding playlist", e);
-                            // Xử lý trường hợp thêm playlist thất bại (nếu cần)
                         }
                     });
         } else {
-            // Hiển thị thông báo lỗi nếu tên playlist rỗng
             Toast.makeText(this, "Please enter a playlist name", Toast.LENGTH_SHORT).show();
         }
-        // Xử lý sự kiện cho nút xác nhận
+
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Xử lý logic khi nhấn nút cancel_button
-                dialog.dismiss(); // Đóng dialog khi nút cancel_button được nhấn
+                dialog.dismiss();
             }
         });
+
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Thực hiện xử lý khi người dùng nhấn nút xác nhận
                 mAuth = FirebaseAuth.getInstance();
                 String userId = mAuth.getUid();
                 playlistName = String.valueOf(inputDialog.getText());
 
-                // Kiểm tra nếu tên playlist không rỗng
                 if (!playlistName.isEmpty()) {
-                    // Thêm playlist vào Firestore
                     FirebaseFirestore db = FirebaseFirestore.getInstance();
                     CollectionReference playlistsRef = db.collection("playlists");
 
-                    // Tạo một object PlaylistModel
-                    PlaylistModel playlist = new PlaylistModel(playlistName, userId,"https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41",new ArrayList<>());
+                    // Kiểm tra xem tên playlist đã tồn tại chưa
+                    playlistsRef.whereEqualTo("name", playlistName)
+                            .get()
+                            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        if (task.getResult().size() > 0) {
+                                        } else {
+                                            // Nếu tên playlist chưa tồn tại, thêm vào Firestore
+                                            PlaylistModel playlist = new PlaylistModel(playlistName, userId, "https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41", new ArrayList<>());
 
-                    // Thêm playlist vào Firestore
-                    playlistsRef.add(playlist)
-                            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                @Override
-                                public void onSuccess(DocumentReference documentReference) {
-                                    Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
-                                    // Đóng dialog sau khi thêm thành công
-                                    dialog.dismiss();
-                                }
-                            })
-                            .addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Log.w(TAG, "Error adding playlist", e);
-                                    // Xử lý trường hợp thêm playlist thất bại (nếu cần)
+                                            playlistsRef.add(playlist)
+                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                                                        @Override
+                                                        public void onSuccess(DocumentReference documentReference) {
+                                                            Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
+                                                            dialog.dismiss();
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Log.w(TAG, "Error adding playlist", e);
+                                                        }
+                                                    });
+                                        }
+                                    } else {
+                                        Log.d(TAG, "Error getting documents: ", task.getException());
+                                    }
                                 }
                             });
-                } else {
-                    // Hiển thị thông báo lỗi nếu tên playlist rỗng
                 }
             }
         });
 
     }
-
 }

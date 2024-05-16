@@ -55,6 +55,7 @@ public class SongListFragment extends Fragment {
                 Log.w("SongListFragment", "No CategoryModel object received!");
             }
         }
+
     }
 
 
@@ -99,6 +100,14 @@ public class SongListFragment extends Fragment {
         } else {
             Log.w("SongListFragment", "No CategoryModel object received!");
         }
+        binding.backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (getActivity() != null) {
+                    getActivity().onBackPressed();
+                }
+            }
+        });
 
     }
     private void setupSongListRecycler(RecyclerView recyclerView) {

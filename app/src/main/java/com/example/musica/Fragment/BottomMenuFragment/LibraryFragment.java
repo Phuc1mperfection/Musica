@@ -8,23 +8,22 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import  com.example.musica.databinding.FragmentLibraryBinding;
+
 import com.example.musica.Adapter.PlaylistAdapter;
 import com.example.musica.Model.PlaylistModel;
 import com.example.musica.R;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.example.musica.databinding.FragmentLibraryBinding;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -38,13 +37,10 @@ public class LibraryFragment extends Fragment {
 
 
     private String playlistName;
-    private static final int TYPE_PLAYLIST = 1;
-    private static final int TYPE_ADD_SONG_TO_PLAYLIST = 2;
 
     private FragmentLibraryBinding binding;
     private List<PlaylistModel> playlistList;
     private PlaylistAdapter playlistAdapter;
-    private CheckBox checkbox;
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -56,16 +52,14 @@ public class LibraryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Lấy userId từ Bundle
+        SearchView searchView = (SearchView) view.findViewById(R.id.searchBtn);
         Bundle bundle = getArguments();
         if (bundle != null) {
             String userId = bundle.getString("userId");
 
-            // Khởi tạo danh sách playlistList
             playlistList = new ArrayList<>();
             isLibraryFragment = true;
 
-            // Khởi tạo adapter và set cho RecyclerView
             playlistAdapter = new PlaylistAdapter(playlistList, requireContext());
             binding.musicRecyclerViewLibrary.setAdapter(playlistAdapter);
 
@@ -81,6 +75,22 @@ public class LibraryFragment extends Fragment {
             Log.d("LibraryFragment", "Bundle is null");
         }
         binding.addPlaylistBtn.setOnClickListener(v -> openCreatePlaylistAlertDialog());
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // Perform search when user submits query
+                performSearch(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                // Perform search as user types
+                performSearch(newText);
+                return true;
+            }
+        });
     }
 
     private void loadPlaylistData(String userId) {
@@ -103,17 +113,12 @@ public class LibraryFragment extends Fragment {
 
                             if (userId.equals(userID)) {
                                 PlaylistModel playlist = new PlaylistModel(name, userID, imgUrl, songs);
-                                // Thêm playlist vào danh sách
-                                playlist.setPlaylistId(playlistId); // Đặt playlistId cho playlist
-                                // Thêm playlist vào danh sách
+                                playlist.setPlaylistId(playlistId);
                                 playlistList.add(playlist);
                             }
                         }
-
-                        // Cập nhật Adapter để hiển thị danh sách mới
                         playlistAdapter.notifyDataSetChanged();
                     } else {
-                        // Hiển thị thông báo lỗi nếu không thành công
                         Toast.makeText(getContext(), "Failed to load playlists: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -125,40 +130,48 @@ public class LibraryFragment extends Fragment {
 
         TextInputEditText inputDialog = dialogView.findViewById(R.id.editTextDialog);
         CardView confirmButton = dialogView.findViewById(R.id.confirm_button);
-        CardView cancelButton  = dialogView.findViewById(R.id.cancel_button);
+        CardView cancelButton = dialogView.findViewById(R.id.cancel_button);
         AlertDialog alertDialog = builder.create();
         cancelButton.setOnClickListener(v -> alertDialog.dismiss());
 
-
         confirmButton.setOnClickListener(view -> {
-            // Thực hiện xử lý khi người dùng nhấn nút xác nhận
             mAuth = FirebaseAuth.getInstance();
             String userId = mAuth.getUid();
             playlistName = String.valueOf(inputDialog.getText());
 
-            // Kiểm tra nếu tên playlist không rỗng
+            Log.d(TAG, "Playlist name: " + playlistName);
+
             if (!playlistName.isEmpty()) {
-                // Thêm playlist vào Firestore
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
                 CollectionReference playlistsRef = db.collection("playlists");
 
-                // Tạo một object PlaylistModel
-                PlaylistModel playlist = new PlaylistModel(playlistName, userId,"https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41",new ArrayList<>());
+                // Query to check if the playlist name already exists
+                playlistsRef.whereEqualTo("name", playlistName).whereEqualTo("userID", userId)
+                        .get()
+                        .addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                Log.d(TAG, "Number of playlists with same name: " + task.getResult().size());
+                                if (task.getResult().isEmpty()) {
+                                    PlaylistModel playlist = new PlaylistModel(playlistName, userId, "https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41", new ArrayList<>());
 
-                // Thêm playlist vào Firestore
-                playlistsRef.add(playlist)
-                        .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                            @Override
-                            public void onSuccess(DocumentReference documentReference) {
-                                Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
-                                // Đóng dialog sau khi thêm thành công
-                                alertDialog.dismiss();
-                                loadPlaylistData(userId);
+                                    playlistsRef.add(playlist)
+                                            .addOnSuccessListener(documentReference -> {
+                                                Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
+
+                                                alertDialog.dismiss();
+                                                loadPlaylistData(userId);
+                                                Toast.makeText(requireContext(), "Playlist created successfully", Toast.LENGTH_SHORT).show();
+
+                                            })
+                                            .addOnFailureListener(e -> Log.w(TAG, "Error adding playlist", e));
+                                } else {
+                                    Toast.makeText(requireContext(), "Playlist name already exists", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(requireContext(), "Failed to check playlist name: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                             }
-                        })
-                        .addOnFailureListener(e -> Log.w(TAG, "Error adding playlist", e));
+                        });
             } else {
-                // Hiển thị thông báo lỗi nếu tên playlist rỗng
                 Toast.makeText(requireContext(), "Please enter a playlist name", Toast.LENGTH_SHORT).show();
             }
         });
@@ -172,6 +185,15 @@ public class LibraryFragment extends Fragment {
         super.onDestroyView();
         binding = null;
     }
-
+    private void performSearch(String query) {
+        List<PlaylistModel> filteredList = new ArrayList<>();
+        for (PlaylistModel playlist : playlistList) {
+            if (playlist.getName().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(playlist);
+            }
+        }
+        playlistAdapter.setPlaylistList(filteredList);
+        playlistAdapter.notifyDataSetChanged();
+    }
 }
 
