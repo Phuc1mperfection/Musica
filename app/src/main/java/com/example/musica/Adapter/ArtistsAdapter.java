@@ -6,11 +6,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
 import com.example.musica.Model.ArtistsModel;
 import com.example.musica.R;
 import com.example.musica.databinding.ItemArtistsBinding;
@@ -54,9 +54,15 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHo
 
         void bind(ArtistsModel artist) {
             binding.nameTextView.setText(artist.getName());
+
+            RequestOptions requestOptions = new RequestOptions()
+                    .circleCrop(); // Apply the circular crop transformation
+
             Glide.with(binding.getRoot().getContext())
                     .load(artist.getImgUrl())
+                    .apply(requestOptions) // Apply the requestOptions to the Glide request
                     .into(binding.imgArtists);
         }
+
     }
 }
