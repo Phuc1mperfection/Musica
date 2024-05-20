@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
             addSongToPlaylistFragment.setArguments(bundle);
             replaceFragment(libraryFragment);
             replaceFragment(addSongToPlaylistFragment);
+
         } else {
             Log.d("MainActivity", "User not logged in");
         }
@@ -83,6 +84,25 @@ public class MainActivity extends AppCompatActivity {
                 openCreatePlaylistAlertDialog();
             }
         });
+        setupBottomNavigation();
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        // If there are more than one fragments in the back stack, pop the back stack
+        if (fragmentManager.getBackStackEntryCount() > 1) {
+            fragmentManager.popBackStack();
+        } else {
+            // If only one fragment is left (HomeFragment), then finish the activity
+            finish();
+        }
+    }
+
+    private void setupBottomNavigation() {
+        binding.bottomNavigationView.setBackground(null);
+        binding.floatingbtn.setOnClickListener(v -> openCreatePlaylistAlertDialog());
 
         binding.bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId(); // Store the resource ID in a variable
@@ -99,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
     }
-
     private void replaceFragment(Fragment fragment) {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

@@ -12,14 +12,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#153448">
+
         <ImageView
             android:id="@+id/moreBtn"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_alignParentEnd="true"
             android:layout_marginLeft="30dp"
-            android:layout_marginEnd="-1dp"
-            android:layout_marginRight="10dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginRight="30dp"
             android:padding="10dp"
             android:src="@drawable/baseline_more_horiz_24" />
 

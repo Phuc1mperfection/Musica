@@ -46,29 +46,21 @@
 
         <androidx.core.widget.NestedScrollView
 
+            android:id="@+id/nestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <TextView
-                    android:id="@+id/welcome"
-                    android:layout_marginTop="40dp"
-                    android:layout_width="match_parent"
-                    android:textStyle="bold"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:textSize="16sp"
-                    android:textColor="@color/black"
-                    />
                 <LinearLayout
                     android:id="@+id/profileInfo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginTop="50dp">
+                    android:layout_marginTop="50dp"
+                    android:orientation="vertical">
 
                     <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/userAvatar"
@@ -76,70 +68,64 @@
                         android:layout_height="150dp"
                         android:layout_gravity="center"
                         android:src="@drawable/default_avatar"
-                        app:civ_border_color="#FF000000"/>
+                        app:civ_border_color="#FF000000" />
 
                     <TextView
                         android:id="@+id/userEmail"
-                        android:layout_marginTop="20dp"
                         android:layout_width="wrap_content"
-                        android:textStyle="bold"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"/>
+                        android:layout_gravity="center"
+                        android:layout_marginTop="20dp"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
+
                 <androidx.cardview.widget.CardView
                     android:id="@+id/profileEdit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_margin="20dp"
                     android:layout_below="@+id/profileInfo"
+                    android:layout_margin="20dp"
                     app:cardCornerRadius="20dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:background="#f5f6fa">
+                        android:layout_height="match_parent"
+                        android:background="#f5f6fa"
+                        android:orientation="vertical">
 
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/welcome"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="30dp"
-                            android:paddingBottom="10dp"
-                            android:background="@drawable/border_bottom">
-
-                            <TextView
-                                android:textColor="@color/black"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:text="Change your account infomation"
-                                android:textSize="9pt"
-                                android:textStyle="bold"
-                                android:layout_marginStart="15dp"/>
-
-                        </LinearLayout>
+                            android:layout_height="40dp"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="40dp"
+                            android:textAlignment="center"
+                            android:textColor="@color/black"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
 
                         <LinearLayout
                             android:id="@+id/avatarChangeBtn"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:layout_marginStart="15dp"
                             android:layout_marginTop="20dp"
+                            android:orientation="horizontal"
                             android:paddingTop="5dp"
                             android:paddingBottom="5dp">
 
                             <ImageView
-                                android:layout_width="25dp"
+                                android:layout_width="24dp"
                                 android:layout_height="25dp"
-                                android:src="@drawable/icon_edit"/>
+                                android:src="@drawable/icon_edit" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:layout_marginStart="10dp"
                                 android:text="Change your avatar"
-                                android:textSize="9pt"
-                                android:layout_marginStart="10dp"/>
+                                android:textSize="9pt" />
 
                         </LinearLayout>
 
@@ -147,23 +133,23 @@
                             android:id="@+id/emailChangeBtn"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:layout_marginStart="15dp"
                             android:layout_marginTop="10dp"
+                            android:orientation="horizontal"
                             android:paddingTop="5dp"
                             android:paddingBottom="5dp">
 
                             <ImageView
                                 android:layout_width="25dp"
                                 android:layout_height="25dp"
-                                android:src="@drawable/icon_edit"/>
+                                android:src="@drawable/icon_edit" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:layout_marginStart="10dp"
                                 android:text="Change your email"
-                                android:textSize="9pt"
-                                android:layout_marginStart="10dp"/>
+                                android:textSize="9pt" />
 
                         </LinearLayout>
 
@@ -171,32 +157,32 @@
                             android:id="@+id/passwordChangeBtn"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
                             android:layout_marginStart="15dp"
                             android:layout_marginTop="10dp"
                             android:layout_marginBottom="30dp"
+                            android:orientation="horizontal"
                             android:paddingTop="5dp"
                             android:paddingBottom="5dp">
 
                             <ImageView
                                 android:layout_width="25dp"
                                 android:layout_height="25dp"
-                                android:src="@drawable/icon_edit"/>
+                                android:src="@drawable/icon_edit" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:layout_marginStart="10dp"
                                 android:text="Change your password"
-                                android:textSize="9pt"
-                                android:layout_marginStart="10dp"/>
+                                android:textSize="9pt" />
 
                         </LinearLayout>
-
 
 
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
+
                 <Button
                     android:id="@+id/signout"
                     android:layout_width="match_parent"
@@ -206,9 +192,10 @@
                     android:layout_marginEnd="20dp"
                     android:backgroundTint="@color/light_blue"
                     android:text="SIGN OUT"
-                    android:textColor="@color/black"
-                    />
+                    android:textColor="@color/black" />
+
             </RelativeLayout>
         </androidx.core.widget.NestedScrollView>
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 </FrameLayout>

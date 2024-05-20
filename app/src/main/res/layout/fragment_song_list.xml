@@ -16,8 +16,7 @@
         android:layout_gravity="start"
         android:layout_marginTop="20dp"
         android:layout_marginStart="16dp"
-        android:src="@drawable/ic_arrow_back"
-
+        android:src="@drawable/arrow_back"
         app:tint="@color/black" />
 
     <ImageView

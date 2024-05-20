@@ -57,6 +57,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
                 android:paddingTop="30dp"
+                android:layout_marginLeft="10dp"
                 android:text="Top Artists"
                 android:textColor="@color/black"
                 android:textSize="16dp" />
@@ -71,6 +72,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
                 android:paddingTop="20dp"
+                android:layout_marginLeft="10dp"
                 android:text="Categories"
                 android:textColor="@color/black"
                 android:textSize="16dp" />

@@ -4,13 +4,19 @@ import static android.content.ContentValues.TAG;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +35,14 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.UUID;
 /**
  * A simple {@link Fragment} subclass.
  * Use the {@link UserFragment#newInstance} factory method to
@@ -48,6 +61,9 @@ public class UserFragment extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+    private Uri imagePath;
+    private View dialogView;
+    private LayoutInflater inflater;
 
     public UserFragment() {
         // Required empty public constructor
@@ -88,6 +104,7 @@ public class UserFragment extends Fragment {
             startActivity(intent);
         } else {
             textView.setText("Hello " + users.getEmail());
+            loadUserImage();
         }
 
         button.setOnClickListener(new View.OnClickListener() {
@@ -107,8 +124,8 @@ public class UserFragment extends Fragment {
 
     private void showEmailChangeDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        LayoutInflater inflater = LayoutInflater.from(requireContext());
-        View dialogView = inflater.inflate(R.layout.change_email_dialog, null);
+        inflater = LayoutInflater.from(requireContext());
+        dialogView = inflater.inflate(R.layout.change_email_dialog, null);
         builder.setView(dialogView);
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -151,25 +168,10 @@ public class UserFragment extends Fragment {
         });
     }
 
-
-
-    private void showImageChangeDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        LayoutInflater inflater = LayoutInflater.from(requireContext());
-        View dialogView = inflater.inflate(R.layout.change_image_dialog, null);
-        builder.setView(dialogView);
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-        CardView cancelButton = dialogView.findViewById(R.id.cancel_button);
-        cancelButton.setOnClickListener(v -> dialog.dismiss());
-    }
-
     private void showPasswordChangeDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        LayoutInflater inflater = LayoutInflater.from(requireContext());
-        View dialogView = inflater.inflate(R.layout.change_password_dialog, null);
+        inflater = LayoutInflater.from(requireContext());
+        dialogView = inflater.inflate(R.layout.change_password_dialog, null);
         builder.setView(dialogView);
 
         AlertDialog dialog = builder.create();
@@ -238,9 +240,126 @@ public class UserFragment extends Fragment {
         });
     }
 
+    private void showImageChangeDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        inflater = LayoutInflater.from(requireContext());
+        dialogView = inflater.inflate(R.layout.change_image_dialog, null);
+        builder.setView(dialogView);
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        ImageView imageViewAvatar = dialogView.findViewById(R.id.imageViewAvatar);
+        CardView cancelButton = dialogView.findViewById(R.id.cancel_button);
+        CardView confirmButton = dialogView.findViewById(R.id.confirm_button);
+
+        imageViewAvatar.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(intent, 1);
+        });
+        cancelButton.setOnClickListener(v -> dialog.dismiss());
+        confirmButton.setOnClickListener(v -> {
+            if (imagePath != null) {
+                FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                if (currentUser != null) {
+                    String userId = currentUser.getUid();
+                    StorageReference storageReference = FirebaseStorage.getInstance().getReference("user_image/" + userId + "/" + UUID.randomUUID().toString());
+                    storageReference.putFile(imagePath)
+                            .addOnSuccessListener(taskSnapshot -> {
+                                // Tải lên ảnh thành công, lấy URL mới của ảnh
+                                storageReference.getDownloadUrl().addOnSuccessListener(uri -> {
+                                    // Cập nhật URL mới của ảnh vào Firebase Realtime Database
+                                    updateAppWithNewImage(uri.toString());
+                                    dialog.dismiss(); // Đóng dialog sau khi cập nhật thành công
+                                    loadUserImage();
+                                });
+                            })
+                            .addOnFailureListener(e -> showToast("Failed to upload image"));
+                }
+            } else {
+                showToast("No image selected to update");
+            }
+        });
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        ImageView imageViewAvatar = dialogView.findViewById(R.id.imageViewAvatar);
+        if (requestCode == 1 && resultCode == getActivity().RESULT_OK && data != null && data.getData() != null) {
+            imagePath = data.getData();
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(requireActivity().getContentResolver(), imagePath);
+                imageViewAvatar.setImageBitmap(bitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void updateAppWithNewImage(String imageUrl) {
+        // Lưu URL của hình ảnh vào cơ sở dữ liệu Firebase
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance("https://musicproject-53d9d-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("users_image").child(userId).child("profilePicture");
+
+            userRef.setValue(imageUrl)
+                    .addOnSuccessListener(aVoid -> showToast("Image updated successfully"))
+                    .addOnFailureListener(e -> showToast("Failed to update image: " + e.getMessage()));
+        } else {
+            showToast("User is not logged in");
+        }
+    }
+
+    private void loadUserImage() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance("https://musicproject-53d9d-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("users_image").child(userId).child("profilePicture");
+
+            userRef.get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    String imageUrl = dataSnapshot.getValue(String.class);
+                    if (imageUrl != null) {
+                        new DownloadImageTask((ImageView) getView().findViewById(R.id.userAvatar)).execute(imageUrl);
+                    }
+                }
+            }).addOnFailureListener(e -> showToast("Failed to load image: " + e.getMessage()));
+        }
+    }
+
+    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+        ImageView bmImage;
+
+        public DownloadImageTask(ImageView bmImage) {
+            this.bmImage = bmImage;
+        }
+
+        protected Bitmap doInBackground(String... urls) {
+            String urlDisplay = urls[0];
+            Bitmap mIcon11 = null;
+            try {
+                InputStream in = new java.net.URL(urlDisplay).openStream();
+                mIcon11 = BitmapFactory.decodeStream(in);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return mIcon11;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            bmImage.setImageBitmap(result);
+        }
+    }
 
 
 
+
+    private void showToast(String message) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    }
 
     public static UserFragment newInstance(String param1, String param2) {
         UserFragment fragment = new UserFragment();
