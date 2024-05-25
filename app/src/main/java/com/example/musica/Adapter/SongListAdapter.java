@@ -27,7 +27,8 @@ import java.util.List;
 
 public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyViewHolder> {
 
-    private final List<String> songIdList;
+    private List<String> songIdList;
+    private final List<SongModel> playlist; // Add a playlist member variable
 
     public SongListAdapter(List<String> songIdList) {
         if (songIdList == null) {
@@ -35,6 +36,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
         } else {
             this.songIdList = songIdList;
         }
+        this.playlist = new ArrayList<>(); // Initialize the playlist
     }
 
     public static class MyViewHolder extends RecyclerView.ViewHolder {
@@ -46,7 +48,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
             this.binding = binding;
         }
 
-        public void bindData(String songId) {
+        public void bindData(String songId, List<SongModel> playlist) {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             db.collection("songs")
                     .document(songId)
@@ -57,6 +59,9 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
                             if (documentSnapshot.exists()) {
                                 SongModel song = documentSnapshot.toObject(SongModel.class);
                                 if (song != null) {
+                                    // Add the song to the playlist
+                                    playlist.add(song);
+
                                     // Update UI elements based on retrieved song data
                                     binding.nameSongs.setText(song.getName());
                                     binding.artistsSongs.setText(song.getArtists());
@@ -69,7 +74,7 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
                                         @Override
                                         public void onClick(View v) {
                                             Context context = v.getContext();
-                                            MyExoplayer.startPlaying(context, song);
+                                            MyExoplayer.startPlaying(context, song, playlist); // Pass the playlist
 
                                             // Tạo Intent và thêm songId vào Intent
                                             Intent intent = new Intent(context, MusicPlayerActivity.class);
@@ -103,15 +108,17 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
         SongsItemRowBinding binding = SongsItemRowBinding.inflate(inflater, parent, false);
         return new MyViewHolder(binding);
     }
-
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
         // Check if the songIdList is not empty before accessing its elements
         if (!songIdList.isEmpty() && position >= 0 && position < songIdList.size()) {
-            holder.bindData(songIdList.get(position));
+            holder.bindData(songIdList.get(position), playlist); // Pass the playlist
         }
     }
-
+    public void setSongIdList(List<String> songIdList) {
+        this.songIdList = songIdList;
+        notifyDataSetChanged(); // Cập nhật RecyclerView sau khi thiết lập danh sách mới
+    }
     @Override
     public int getItemCount() {
         return songIdList.size();

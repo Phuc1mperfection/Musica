@@ -42,6 +42,9 @@
             android:name=".LoginHandle.Registration"
             android:exported="false" />
         <activity
+            android:name=".LoginHandle.ResetPassword"
+            android:exported="false" />
+        <activity
             android:name=".LoginHandle.Login"
             android:exported="true" >
             <intent-filter>

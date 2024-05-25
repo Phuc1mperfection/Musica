@@ -28,6 +28,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.musica.LoginHandle.Login;
 import com.example.musica.MainActivity;
+import com.example.musica.Object.MyExoplayer;
 import com.example.musica.R;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -86,12 +87,19 @@ public class UserFragment extends Fragment {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Đăng xuất khỏi Firebase
                 FirebaseAuth.getInstance().signOut();
+
+                // Dừng phát nhạc và giải phóng tài nguyên
+                MyExoplayer.handleLogout(getContext());
+
+                // Chuyển sang màn hình đăng nhập
                 Intent intent = new Intent(getContext(), Login.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
             }
         });
+
 
         // Khởi tạo các button và thêm sự kiện cho chúng
         LinearLayout emailButton = view.findViewById(R.id.emailChangeBtn);
@@ -106,16 +114,6 @@ public class UserFragment extends Fragment {
             textView.setText("Hello " + users.getEmail());
             loadUserImage();
         }
-
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FirebaseAuth.getInstance().signOut();
-                Intent intent = new Intent(getContext(), Login.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-            }
-        });
 
         emailButton.setOnClickListener(view1 -> showEmailChangeDialog());
         imageButton.setOnClickListener(view12 -> showImageChangeDialog());
