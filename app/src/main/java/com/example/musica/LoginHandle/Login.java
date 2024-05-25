@@ -25,6 +25,7 @@ import com.google.firebase.auth.FirebaseUser;
 public class Login extends AppCompatActivity {
     Button btnLogin;
     TextView toRegist;
+    TextView toReset;
     private TextInputEditText editTextEmail, editTextPassword;
     private FirebaseAuth mAuth;
     private TextInputLayout passwordTextInputLayout, emailTextInputLayout;
@@ -54,6 +55,7 @@ public class Login extends AppCompatActivity {
         toRegist = findViewById(R.id.toRegist);
         passwordTextInputLayout = findViewById(R.id.passwordTextInputLayout);
         emailTextInputLayout = findViewById(R.id.emailTextInputLayout);
+        toReset = findViewById(R.id.resetPassword);
 
         editTextEmail.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -86,6 +88,17 @@ public class Login extends AppCompatActivity {
                 finish();
             }
         });
+
+        toReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), ResetPassword.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override

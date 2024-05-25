@@ -1,6 +1,8 @@
 package com.example.musica;
+
 import static com.example.musica.Adapter.PlaylistAdapter.playlistList;
 
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -9,16 +11,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.media3.common.MediaItem;
+import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 
 import com.bumptech.glide.Glide;
@@ -29,30 +36,11 @@ import com.example.musica.Fragment.SubFragment.AddSongToPlaylistFragment;
 import com.example.musica.Model.SongModel;
 import com.example.musica.Object.MyExoplayer;
 import com.example.musica.databinding.ActivityMusicPlayerBinding;
+import com.example.musica.databinding.MiniPlayerLayoutBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Objects;
-import android.os.Bundle;
-import android.os.Handler;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.media3.exoplayer.ExoPlayer;
-
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.example.musica.Model.SongModel;
-import com.example.musica.Object.MyExoplayer;
-import com.example.musica.databinding.ActivityMusicPlayerBinding;
-import com.example.musica.databinding.MiniPlayerLayoutBinding;
 
 public class MusicPlayerActivity extends AppCompatActivity {
     private SeekBar seekBar;
@@ -60,22 +48,25 @@ public class MusicPlayerActivity extends AppCompatActivity {
     FirebaseAuth auth;
     private TextView currentTimeTextView;
     private TextView totalTimeTextView;
-    private final boolean isSeekBarDragging = false;
+    private boolean isSeekBarDragging = false;
     private final Handler handler = new Handler();
     private ImageView imgSongs, pausePlayButton;
     private final boolean isPlaying = false;
     private ActivityMusicPlayerBinding binding;
-    private ExoPlayer exoPlayer;
+    private static ExoPlayer exoPlayer;
     private ImageView backBtn;
     private View fullPlayer, miniPlayer;
     private ImageView miniImgSongs, miniPausePlay;
     private TextView miniNameSongs, miniArtistsSongs;
     private GestureDetector gestureDetector;
     private RelativeLayout parentLayout;
+    private ImageView nextBtn, previousBtn;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        exoPlayer = MyExoplayer.getExoPlayer();
 
         // Initialize binding before calling setContentView
         binding = ActivityMusicPlayerBinding.inflate(getLayoutInflater());
@@ -90,6 +81,8 @@ public class MusicPlayerActivity extends AppCompatActivity {
         currentTimeTextView = binding.currentTime;
         totalTimeTextView = binding.totalTime;
         backBtn = binding.backBtn;
+        nextBtn = binding.next;
+        previousBtn = binding.previous;
         parentLayout = binding.parentLayout;
 
         // Mini player views
@@ -125,6 +118,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
         // Mini player click listener to expand full player
         miniPlayer.setOnClickListener(v -> expandFullPlayer());
         miniPausePlay.setOnClickListener(v -> togglePause());
+
+        // Set click listener for next and previous buttons
+        nextBtn.setOnClickListener(v -> playNextSong());
+        previousBtn.setOnClickListener(v -> playPreviousSong());
 
         PlaylistAdapter playlistAdapter = new PlaylistAdapter(playlistList, this);
         SongModel currentSong = MyExoplayer.getCurrentSong();
@@ -193,100 +190,132 @@ public class MusicPlayerActivity extends AppCompatActivity {
         updateSeekBar();
 
         // Set up handler to update SeekBar and time TextViews periodically
-        handler.postDelayed(seekBarUpdater, 1000); // Update every second
+        handler.postDelayed(seekBarUpdater, 1000);
+
+        if (MyExoplayer.getExoPlayer() != null) {
+            MyExoplayer.getExoPlayer().addListener(new Player.Listener() {
+                @Override
+                public void onPlaybackStateChanged(int state) {
+                    if (state == Player.STATE_ENDED) {
+                        playNextSong();
+                    }
+                }
+            });
+        }
     }
 
-    // SeekBar change listener
     private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (fromUser) {
-                // User is dragging the SeekBar, seek to the selected position
-                ExoPlayer exoPlayer = MyExoplayer.getInstance();
-                if (exoPlayer != null) {
-                    exoPlayer.seekTo(progress);
-                }
+            if (fromUser && exoPlayer != null) {
+                long duration = exoPlayer.getDuration();
+                long newPosition = (duration * progress) / 100;
+                exoPlayer.seekTo(newPosition);
             }
         }
 
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
-            // No action needed
+            isSeekBarDragging = true;
         }
 
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            // No action needed
+            isSeekBarDragging = false;
         }
     };
 
-    // Runnable to update SeekBar and time TextViews periodically
     private final Runnable seekBarUpdater = new Runnable() {
         @Override
         public void run() {
             updateSeekBar();
-            handler.postDelayed(this, 1000); // Update every second
+            handler.postDelayed(this, 1000);
         }
     };
 
     private void updateSeekBar() {
-        ExoPlayer exoPlayer = MyExoplayer.getInstance();
-        if (exoPlayer != null) {
-            int currentTimeMillis = (int) exoPlayer.getCurrentPosition();
-            int totalTimeMillis = (int) exoPlayer.getDuration();
+        if (exoPlayer != null && !isSeekBarDragging) {
+            long currentPosition = exoPlayer.getCurrentPosition();
+            long duration = exoPlayer.getDuration();
 
-            String currentTimeString = formatTime(currentTimeMillis);
-            String totalTimeString = formatTime(totalTimeMillis);
+            if (duration > 0) {
+                int progress = (int) ((currentPosition * 100) / duration);
+                seekBar.setProgress(progress);
+            }
 
-            currentTimeTextView.setText(currentTimeString);
-            totalTimeTextView.setText(totalTimeString);
-
-            // Update seekbar progress
-            seekBar.setMax(totalTimeMillis);
-            seekBar.setProgress(currentTimeMillis);
+            currentTimeTextView.setText(formatTime(currentPosition));
+            totalTimeTextView.setText(formatTime(duration));
         }
     }
 
+    @SuppressLint("DefaultLocale")
+    private String formatTime(long timeInMillis) {
+        int totalSeconds = (int) (timeInMillis / 1000);
+        int minutes = totalSeconds / 60;
+        int seconds = totalSeconds % 60;
+
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
     private void togglePause() {
-        ExoPlayer exoPlayer = MyExoplayer.getInstance();
-        if (exoPlayer != null) {
-            boolean isPlaying = exoPlayer.isPlaying();
-            if (isPlaying) {
-                exoPlayer.pause();
+        ExoPlayer player = MyExoplayer.getExoPlayer();
+        if (player != null) {
+            if (player.isPlaying()) {
+                player.pause();
                 pausePlayButton.setImageResource(R.drawable.baseline_play_circle_24);
                 miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
             } else {
-                exoPlayer.play();
+                player.play();
                 pausePlayButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
                 miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
             }
         }
     }
 
-    private String formatTime(int millis) {
-        int seconds = millis / 1000;
-        int minutes = seconds / 60;
-        int hours = minutes / 60;
-        seconds %= 60;
-        minutes %= 60;
-        if (hours > 0) {
-            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            return String.format("%02d:%02d", minutes, seconds);
-        }
+    private void expandFullPlayer() {
+        fullPlayer.setVisibility(View.VISIBLE);
+        miniPlayer.setVisibility(View.GONE);
     }
 
     private void minimizePlayer() {
         fullPlayer.setVisibility(View.GONE);
         miniPlayer.setVisibility(View.VISIBLE);
-        miniPlayer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_in));
     }
 
-    // Method to expand full player
+    private void playNextSong() {
+        MyExoplayer.playNextSong();
+        updateUIWithCurrentSong();
 
-    private void expandFullPlayer() {
-        miniPlayer.setVisibility(View.GONE);
-        fullPlayer.setVisibility(View.VISIBLE);
-        fullPlayer.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_out));
+    }
+
+    private void playPreviousSong() {
+        MyExoplayer.playPreviousSong();
+        updateUIWithCurrentSong();
+
+    }
+
+    private void updateUIWithCurrentSong() {
+        SongModel currentSong = MyExoplayer.getCurrentSong();
+        if (currentSong != null) {
+            binding.nameSongs.setText(currentSong.getName());
+            binding.artistsSongs.setText(currentSong.getArtists());
+            Glide.with(this)
+                    .load(currentSong.getImgUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(binding.imgSongs);
+
+            miniNameSongs.setText(currentSong.getName());
+            miniArtistsSongs.setText(currentSong.getArtists());
+            Glide.with(this)
+                    .load(currentSong.getImgUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(miniImgSongs);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        handler.removeCallbacks(seekBarUpdater);
     }
 }
