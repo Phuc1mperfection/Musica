@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.d("MainActivity", "User not logged in");
         }
-
         // Kiểm tra intent để xác định xem cần mở HomeFragment hay không
         if (getIntent().getBooleanExtra("goToHomeFragment", false)) {
             replaceFragment(new HomeFragment());

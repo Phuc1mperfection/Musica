@@ -7,8 +7,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+import java.util.concurrent.atomic.AtomicInteger;
+
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -28,19 +31,18 @@ public class PlaylistDetailActivity extends AppCompatActivity {
 
     private ActivityPlaylistDetailBinding binding;
     private List<String> songIdList;
-
+    private FirebaseFirestore db;
+    private  SongListAdapter songListAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityPlaylistDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance(); // Initialize Firestore instance
-
+        db = FirebaseFirestore.getInstance();
         songIdList = new ArrayList<>(); // Initialize songIdList
         binding.musicRecyclerViewPlaylist.setLayoutManager(new LinearLayoutManager(this));
+        songListAdapter = new SongListAdapter(songIdList);
         binding.musicRecyclerViewPlaylist.setAdapter(new SongListAdapter(songIdList));
-
         Intent intent = getIntent();
         if (intent != null) {
             Log.d(TAG, "Intent received");
@@ -50,7 +52,6 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             } else {
                 Log.d(TAG, "Playlist name not found in Intent");
             }
-
             String userId = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
             db.collection("playlists")
                     .whereEqualTo("userID", userId)
@@ -90,6 +91,18 @@ public class PlaylistDetailActivity extends AppCompatActivity {
             }
         });
         binding.backBtn.setOnClickListener(v -> finish());
+        binding.searchBtn.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchSongs(query);
+                return false;
+            }
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searchSongs(newText);
+                return true;
+            }
+        });
     }
     private void showAddSongListFragment() {
         AddSongListFragment addSongListFragment = new AddSongListFragment(); // Create the fragment instance
@@ -99,5 +112,72 @@ public class PlaylistDetailActivity extends AppCompatActivity {
         transaction.addToBackStack(null);
         transaction.commit();
     }
+    private void searchSongs(String keyword) {
+        // Lấy tên của playlist từ giao diện người dùng
+        String playlistName = binding.playlistName.getText().toString();
+
+        // Truy vấn cơ sở dữ liệu để lấy danh sách bài hát của playlist đó
+        db.collection("playlists")
+                .whereEqualTo("name", playlistName)
+                .limit(1)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            // Lấy danh sách bài hát từ tài liệu của playlist
+                            List<String> playlistSongs = (List<String>) document.get("songs");
+                            if (playlistSongs != null) {
+                                // Sau khi lấy được danh sách bài hát của playlist, tiến hành tìm kiếm
+                                searchSongsInPlaylist(playlistSongs, keyword);
+                            }
+                        }
+                    } else {
+                        Toast.makeText(this, "Failed to search songs", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void searchSongsInPlaylist(List<String> playlistSongs, String keyword) {
+        List<String> filteredSongIdList = new ArrayList<>();
+
+        // Sử dụng AtomicInteger để theo dõi số lượng bài hát đã xử lý
+        AtomicInteger processedCount = new AtomicInteger(0);
+
+        for (String songId : playlistSongs) {
+            db.collection("songs").document(songId)
+                    .get()
+                    .addOnSuccessListener(songDocument -> {
+                        String songName = songDocument.getString("name");
+                        String songArtists = songDocument.getString("artists");
+                        if (songName != null && songName.toLowerCase().contains(keyword.toLowerCase())
+                                || songArtists != null && songArtists.toLowerCase().contains(keyword.toLowerCase())) {
+                            filteredSongIdList.add(songId);
+                        }
+
+                        // Log lại bài hát đang được xử lý
+                        Log.d(TAG, "Processed song: " + songName);
+
+                        // Cập nhật RecyclerView sau khi mỗi bài hát được xử lý
+                        updateRecyclerView(filteredSongIdList);
+
+                        // Tăng số lượng bài hát đã xử lý
+                        int count = processedCount.incrementAndGet();
+
+                        // Kiểm tra xem đã xử lý hết tất cả các bài hát chưa
+                        if (count == playlistSongs.size()) {
+                            Log.d(TAG, "All songs processed. Keyword: " + keyword);
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error getting song document", e);
+                    });
+        }
+    }
+    private void updateRecyclerView(List<String> filteredSongIdList) {
+        // Cập nhật RecyclerView với danh sách bài hát đã lọc
+        songListAdapter.setSongIdList(filteredSongIdList);
+        songListAdapter.notifyDataSetChanged();
+    }
+
 }
 

@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.musica.Adapter.PlaylistAdapter;
 import com.example.musica.Model.PlaylistModel;
+import com.example.musica.R;
 import com.example.musica.databinding.FragmentAddSongToPlaylistBinding;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -102,6 +104,22 @@ public class AddSongToPlaylistFragment extends Fragment {
             Log.d("AddSongToPlaylistFragment", "Bundle is null");
         }
         binding.submitButton.setOnClickListener(v -> submitChanges());
+        androidx.appcompat.widget.SearchView searchView = view.findViewById(R.id.searchBtn);
+
+
+        searchView.setOnQueryTextListener(new androidx.appcompat.widget.SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                performSearch(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                performSearch(newText);
+                return true;
+            }
+        });
     }
 
 
@@ -136,7 +154,16 @@ public class AddSongToPlaylistFragment extends Fragment {
                     });
         }
     }
-
+    private void performSearch(String query) {
+        List<PlaylistModel> filteredList = new ArrayList<>();
+        for (PlaylistModel playlist : playlistList) {
+            if (playlist.getName().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(playlist);
+            }
+        }
+        playlistAdapter.setPlaylistList(filteredList);
+        playlistAdapter.notifyDataSetChanged();
+    }
     private void loadPlaylistData(String userId) {
         Log.d("AddSongToPlaylistFragment", "Loading playlist data for user: " + userId);
         CollectionReference playlistsRef = FirebaseFirestore.getInstance().collection("playlists");
