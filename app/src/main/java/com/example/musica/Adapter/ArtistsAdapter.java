@@ -6,36 +6,82 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.bumptech.glide.request.RequestOptions;
+import com.example.musica.Fragment.SubFragment.ArtistSongListFragment;
 import com.example.musica.Model.ArtistsModel;
 import com.example.musica.R;
-import com.example.musica.databinding.ItemArtistsBinding;
 
 import java.util.List;
 
-public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHolder> {
+public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ArtistsViewHolder> {
 
+    private Context context;
     private List<ArtistsModel> artistsList;
 
-    public ArtistsAdapter(List<ArtistsModel> artistsList) {
+    public ArtistsAdapter(Context context, List<ArtistsModel> artistsList) {
+        this.context = context;
         this.artistsList = artistsList;
     }
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        ItemArtistsBinding binding = ItemArtistsBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        return new MyViewHolder(binding);
+    public ArtistsViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_artists, parent, false);
+        return new ArtistsViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ArtistsViewHolder holder, int position) {
         ArtistsModel artist = artistsList.get(position);
-        holder.bind(artist);
+        RequestOptions requestOptions = new RequestOptions().circleCrop();
+
+        // Load the artist image using Glide with circle crop
+        Glide.with(holder.itemView.getContext())
+                .load(artist.getImgUrl())
+                .apply(requestOptions)
+                .into(holder.imgArtists);
+        holder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Get the FragmentManager from the Activity (assuming context is an Activity)
+                FragmentManager fragmentManager = ((FragmentActivity) context).getSupportFragmentManager();
+
+                // Create a new ArtistSongListFragment instance and pass the selected artist
+                ArtistsModel selectedArtist = artist; // Assign the current artist
+                ArtistSongListFragment artistSongListFragment = ArtistSongListFragment.newInstance(selectedArtist);
+
+                // Begin a fragment transaction
+                FragmentTransaction transaction = fragmentManager.beginTransaction();
+
+                // Replace the current fragment with ArtistSongListFragment
+                transaction.replace(R.id.frame_layout, artistSongListFragment); // Replace with your container ID
+                transaction.addToBackStack(null); // Add to back stack (optional)
+                transaction.commit();
+            }
+        });
+
+        // Set the artist name to the TextView
+        holder.nameArtists.setText(artist.getName());
+
+        // Load the artist image using Glide into the ImageView
+        if (artist.getImgUrl() != null) {
+            Glide.with(holder.itemView.getContext())
+                    .load(artist.getImgUrl())
+                    .apply(requestOptions)
+                    .into(holder.imgArtists);
+        } else {
+            // If the image URL is null, set a default placeholder image
+            holder.imgArtists.setImageResource(R.drawable.baseline_home_24);
+        }
     }
 
     @Override
@@ -43,26 +89,15 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.MyViewHo
         return artistsList.size();
     }
 
-    static class MyViewHolder extends RecyclerView.ViewHolder {
+    static class ArtistsViewHolder extends RecyclerView.ViewHolder {
 
-        private final ItemArtistsBinding binding;
+        ImageView imgArtists;
+        TextView nameArtists;
 
-        MyViewHolder(@NonNull ItemArtistsBinding binding) {
-            super(binding.getRoot());
-            this.binding = binding;
+        public ArtistsViewHolder(View itemView) {
+            super(itemView);
+            imgArtists = itemView.findViewById(R.id.imgArtists);
+            nameArtists = itemView.findViewById(R.id.nameTextView);
         }
-
-        void bind(ArtistsModel artist) {
-            binding.nameTextView.setText(artist.getName());
-
-            RequestOptions requestOptions = new RequestOptions()
-                    .circleCrop(); // Apply the circular crop transformation
-
-            Glide.with(binding.getRoot().getContext())
-                    .load(artist.getImgUrl())
-                    .apply(requestOptions) // Apply the requestOptions to the Glide request
-                    .into(binding.imgArtists);
-        }
-
     }
 }

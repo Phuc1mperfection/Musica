@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:background="#f7f7f7"
+    android:background="#fff"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
@@ -14,22 +14,21 @@
         android:padding="16dp"
         android:gravity="center">
 
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="169dp"
-            android:layout_height="271dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginBottom="24dp"
-            android:adjustViewBounds="true"
-            android:scaleType="fitXY"
-            app:srcCompat="@drawable/registration" />
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieAnimation"
+            android:layout_width="wrap_content"
+            android:layout_height="247dp"
+            android:layout_centerInParent="true"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/sax" />
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/registration"
-            android:textColor="@color/brown"
+            android:textColor="@color/black"
             android:textSize="22sp"
             android:layout_marginBottom="24dp" />
 
@@ -82,24 +81,24 @@
             android:textAllCaps="false"
             android:layout_marginBottom="24dp" />
 
-        <TextView
-            android:id="@+id/textView2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Already have an account?"
-            android:textColor="@color/gold"
-            android:textSize="14sp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="16dp" />
 
-        <TextView
-            android:id="@+id/to_login"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Login!!"
-            android:textColor="#000000"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:layout_gravity="center" />
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Already have an account?"
+                android:textColor="@color/gold"
+                android:textSize="14sp"
+                />
+            <TextView
+                android:id="@+id/to_login"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Back to login !!"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                />
+
     </LinearLayout>
 </ScrollView>

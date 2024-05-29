@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,6 +24,9 @@ import com.example.musica.R;
 import com.example.musica.databinding.FragmentLibraryBinding;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,9 +37,6 @@ import java.util.List;
 public class LibraryFragment extends Fragment {
     private FirebaseAuth mAuth;
     private boolean isLibraryFragment = true;
-
-
-
     private String playlistName;
 
     private FragmentLibraryBinding binding;
@@ -45,10 +46,11 @@ public class LibraryFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentLibraryBinding.inflate(inflater, container, false);
+
+
         return binding.getRoot();
 
     }
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -56,10 +58,8 @@ public class LibraryFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             String userId = bundle.getString("userId");
-
             playlistList = new ArrayList<>();
             isLibraryFragment = true;
-
             playlistAdapter = new PlaylistAdapter(playlistList, requireContext());
             binding.musicRecyclerViewLibrary.setAdapter(playlistAdapter);
 
@@ -69,13 +69,12 @@ public class LibraryFragment extends Fragment {
 
             // Set isLibraryFragment cho adapter
             playlistAdapter.setIsLibraryFragment(isLibraryFragment);
-
             loadPlaylistData(userId);
         } else {
             Log.d("LibraryFragment", "Bundle is null");
         }
         binding.addPlaylistBtn.setOnClickListener(v -> openCreatePlaylistAlertDialog());
-
+        loadUserImage();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -83,7 +82,6 @@ public class LibraryFragment extends Fragment {
                 performSearch(query);
                 return false;
             }
-
             @Override
             public boolean onQueryTextChange(String newText) {
                 // Perform search as user types
@@ -92,7 +90,35 @@ public class LibraryFragment extends Fragment {
             }
         });
     }
+    private void loadUserImage() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            DatabaseReference userRef = FirebaseDatabase.getInstance("https://musicproject-53d9d-default-rtdb.asia-southeast1.firebasedatabase.app").getReference("users_image").child(userId).child("profilePicture");
 
+            userRef.get().addOnSuccessListener(dataSnapshot -> {
+                if (dataSnapshot.exists()) {
+                    String imageUrl = dataSnapshot.getValue(String.class);
+                    if (imageUrl != null) {
+                        // Check if the fragment's view is not null before accessing its children
+                        if (getView() != null) {
+                            ImageView imageView = getView().findViewById(R.id.userAvatar);
+                            if (imageView != null) {
+                                new UserFragment.DownloadImageTask(imageView).execute(imageUrl);
+                            } else {
+                                showToast("ImageView not found in the fragment's view");
+                            }
+                        } else {
+                            Log.d("LibraryFragment", "getView() returned null");
+                        }
+                    }
+                }
+            }).addOnFailureListener(e -> showToast("Failed to load image: " + e.getMessage()));
+        }
+    }
+    private void showToast(String message) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+    }
     private void loadPlaylistData(String userId) {
         Log.d("LibraryFragment", "Loading playlist data for user: " + userId);
         CollectionReference playlistsRef = FirebaseFirestore.getInstance().collection("playlists");
@@ -108,8 +134,8 @@ public class LibraryFragment extends Fragment {
                             String userID = doc.getString("userID");
                             String imgUrl = doc.getString("imgUrl");
                             List<String> songs = (List<String>) doc.get("songs");
-                            Log.d("LibraryFragment", "Playlist ID: " + playlistId);
-                            Log.d("LibraryFragment", "Document data: " + doc.getData());
+//                            Log.d("LibraryFragment", "Playlist ID: " + playlistId);
+//                            Log.d("LibraryFragment", "Document data: " + doc.getData());
 
                             if (userId.equals(userID)) {
                                 PlaylistModel playlist = new PlaylistModel(name, userID, imgUrl, songs);
@@ -139,7 +165,7 @@ public class LibraryFragment extends Fragment {
             String userId = mAuth.getUid();
             playlistName = String.valueOf(inputDialog.getText());
 
-            Log.d(TAG, "Playlist name: " + playlistName);
+//            Log.d(TAG, "Playlist name: " + playlistName);
 
             if (!playlistName.isEmpty()) {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -178,8 +204,6 @@ public class LibraryFragment extends Fragment {
 
         alertDialog.show();
     }
-
-
     @Override
     public void onDestroyView() {
         super.onDestroyView();

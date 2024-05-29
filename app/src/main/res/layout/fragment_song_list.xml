@@ -5,58 +5,61 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:paddingTop="40dp"
-    android:paddingBottom="40dp"
-    android:paddingStart="16dp"
-    android:paddingEnd="16dp"
-    android:background="@color/white">
+    android:paddingBottom="20dp"
+    android:background="@color/white"
 
-    <!-- Back button -->
-    <ImageView
-        android:id="@+id/backBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/arrow_back"
-        android:layout_marginTop="16dp"
-        app:tint="@color/black" />
+    >
 
-    <!-- Category image -->
-    <ImageView
-        android:id="@+id/imgCategories"
-        android:layout_width="224dp"
-        android:layout_height="207dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
-        android:background="@drawable/img_background_shape"
-        android:scaleType="centerCrop"
-        android:src="@drawable/registration" />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/imgCategories"
+            android:layout_width="wrap_content"
+            android:layout_height="373dp"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/img_background_shape"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sza"
 
-    <!-- Category name -->
+            />
+
+        <ImageButton
+            android:id="@+id/backBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|start"
+            android:background="@android:color/transparent"
+            android:src="@drawable/arrow_back"
+            android:layout_margin="16dp"
+            app:tint="@color/white"
+            />
+    </FrameLayout>
+
     <TextView
         android:id="@+id/nameCategories"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
+        android:layout_gravity="center_horizontal"
+        android:background="@android:color/transparent"
         android:text="Category Name"
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
         tools:text="AAAA" />
 
-    <!-- Divider -->
     <com.google.android.material.divider.MaterialDivider
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginVertical="16dp"
+        android:layout_marginVertical="8dp"
         app:dividerColor="@color/green" />
 
-    <!-- Song list RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/song_list_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingStart="16dp"
-        android:paddingEnd="16dp" />
-
+        android:layout_marginBottom="30dp"
+        />
 </LinearLayout>

@@ -1,14 +1,12 @@
 package com.example.musica.Fragment.SubFragment;
 
-
-import static androidx.constraintlayout.motion.utils.Oscillator.TAG;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+import static android.content.ContentValues.TAG;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,10 +29,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A simple {@link Fragment} subclass.
- * create an instance of this fragment.
- */
 public class AddSongToPlaylistFragment extends Fragment {
     private List<PlaylistModel> playlistList;
     private boolean isLibraryFragment = true;
@@ -43,30 +37,24 @@ public class AddSongToPlaylistFragment extends Fragment {
     int completedTasksCount;
 
     private FragmentAddSongToPlaylistBinding binding;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentAddSongToPlaylistBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
+
     public void setCurrentSongId(String songId) {
         this.currentSongId = songId;
         playlistAdapter.setCurrentSongId(songId); // Cập nhật currentSongId trong adapter
     }
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         isLibraryFragment = false;
-        binding.backBtn1.setOnClickListener(v -> {
-            FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
-            if (fragmentManager.getBackStackEntryCount() > 0) {
-                fragmentManager.popBackStack();
-            } else {
-                Log.d(TAG, "Back stack is empty. Navigating to previous fragment or homepage");
+        binding.backBtn1.setOnClickListener(v -> handleBackButton());
 
-                fragmentManager.popBackStack("previous_fragment_tag", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-
-            }
-        });
         playlistList = new ArrayList<>();
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -104,6 +92,15 @@ public class AddSongToPlaylistFragment extends Fragment {
         binding.submitButton.setOnClickListener(v -> submitChanges());
     }
 
+    private void handleBackButton() {
+        FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack();
+        } else {
+            Log.d(TAG, "Back stack is empty. Navigating to previous fragment or homepage");
+            fragmentManager.popBackStack("previous_fragment_tag", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+    }
 
     private void submitChanges() {
         for (PlaylistModel playlist : playlistList) {
@@ -124,7 +121,6 @@ public class AddSongToPlaylistFragment extends Fragment {
                                 // Đặt lại biến đếm về 0 cho lần tiếp theo
                                 completedTasksCount = 0;
                                 getFragmentManager().popBackStack();
-
                             }
                         }
                     })

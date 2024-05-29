@@ -10,6 +10,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.musica.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -23,14 +25,16 @@ public class ResetPassword extends AppCompatActivity {
     private TextView toLogin;
     private FirebaseAuth mAuth;
     private Button buttonResetPassword;
+    private LottieAnimationView lottieAnimationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forgot_password);
-
         initViews();
-
+        lottieAnimationView = findViewById(R.id.lottieAnimation);
+        lottieAnimationView.setAnimation(R.raw.password); // Set your animation resource
+        lottieAnimationView.playAnimation();
         buttonResetPassword.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

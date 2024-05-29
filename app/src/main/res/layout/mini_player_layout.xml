@@ -10,7 +10,6 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:padding="5dp"
-        android:src="@drawable/music_icon_big"
         android:background="@drawable/circle_background"
         android:elevation="4dp"
         />

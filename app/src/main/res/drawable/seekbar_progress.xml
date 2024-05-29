@@ -3,7 +3,7 @@
 <item
     android:id="@android:id/background"
     android:height="16dp"
-    android:bottom="7dp"
+    android:bottom="1dp"
     android:top="7dp"
     >
     <shape android:shape="rectangle">

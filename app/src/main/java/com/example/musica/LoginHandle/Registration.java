@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.example.musica.Model.PlaylistModel;
 import com.example.musica.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -47,6 +48,7 @@ public class Registration extends AppCompatActivity {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     CollectionReference playlistsRef = db.collection("playlists");
     TextView toLogin;
+    private LottieAnimationView lottieAnimationView;
     private TextInputEditText editTextName, editTextEmail, editTextPassword;
     private FirebaseAuth mAuth;
 
@@ -54,8 +56,10 @@ public class Registration extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registration);
-
         mAuth = FirebaseAuth.getInstance();
+        lottieAnimationView = findViewById(R.id.lottieAnimation);
+        lottieAnimationView.setAnimation(R.raw.sax); // Set your animation resource
+        lottieAnimationView.playAnimation(); // Start the animation
 
         // Find views by ID
         editTextEmail = findViewById(R.id.editTextEmail);
