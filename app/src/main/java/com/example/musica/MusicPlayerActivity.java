@@ -36,6 +36,7 @@ import com.example.musica.Adapter.PlaylistAdapter;
 import com.example.musica.Fragment.SubFragment.AddSongToPlaylistFragment;
 import com.example.musica.Model.SongModel;
 import com.example.musica.Object.MyExoplayer;
+import com.example.musica.Utils.PlayerStateManager;
 import com.example.musica.databinding.ActivityMainBinding;
 import com.example.musica.databinding.ActivityMusicPlayerBinding;
 import com.example.musica.databinding.MiniPlayerLayoutBinding;
@@ -51,13 +52,13 @@ import java.util.List;
 import java.util.Objects;
 
 public class MusicPlayerActivity extends AppCompatActivity {
-    private SeekBar seekBar,vol_seekBar;
+    private ImageView pausePlayButton;
+    private PlayerStateManager playerStateManager;
+    private SeekBar seekBar;
     private TextView currentTimeTextView;
     private TextView totalTimeTextView;
-    ActivityMainBinding activityMainBinding;
     private boolean isSeekBarDragging = false;
     private final Handler handler = new Handler();
-    private ImageView pausePlayButton;
     private ActivityMusicPlayerBinding binding;
     private static ExoPlayer exoPlayer;
     private View fullPlayer, miniPlayer;
@@ -70,69 +71,55 @@ public class MusicPlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         exoPlayer = MyExoplayer.getExoPlayer();
-        // Initialize binding before calling setContentView
         binding = ActivityMusicPlayerBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        // Initialize views
+
+        // Initialize all view components
+        pausePlayButton = binding.pausePlay;
         fullPlayer = binding.fullPlayer;
         miniPlayer = binding.miniPlayer.getRoot();
         ImageView imgSongs = binding.imgSongs;
-        pausePlayButton = binding.pausePlay;
         seekBar = binding.seekBar;
         currentTimeTextView = binding.currentTime;
-        vol_seekBar = binding.volumeSeekbar;
         totalTimeTextView = binding.totalTime;
         ImageView backBtn = binding.backBtn;
         ImageView nextBtn = binding.next;
         ImageView previousBtn = binding.previous;
-        RelativeLayout parentLayout = binding.parentLayout;
+        backBtn.setOnClickListener(v -> {
+            finish(); // Ends the current activity and returns to the previous one
+            overridePendingTransition(0, R.anim.slide_out_bottom);
+        });
         // Mini player views
         MiniPlayerLayoutBinding miniPlayerBinding = MiniPlayerLayoutBinding.bind(miniPlayer);
         miniImgSongs = miniPlayerBinding.miniImgSongs;
         miniPausePlay = miniPlayerBinding.miniPausePlay;
         miniNameSongs = miniPlayerBinding.miniNameSongs;
         miniArtistsSongs = miniPlayerBinding.miniArtistsSongs;
-        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
-            @Override
-            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-                if (e1.getY() - e2.getY() > 50) {
-                    minimizePlayer();
-                    return true;
-                }
-                return false;
-            }
-        });
-        parentLayout.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
 
-        // Set touch listener for full player to detect swipe gestures
-        fullPlayer.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+        // Register the state listener
+        playerStateManager = PlayerStateManager.getInstance();
+        playerStateManager.addListener(this::updatePausePlayButtonState);
 
-        // Set click listener for pause/play button
+        // Initial state setup
+        boolean isPlaying = getIntent().getBooleanExtra("isPlaying", false);
+        updatePausePlayButtonState(isPlaying);
+
         pausePlayButton.setOnClickListener(v -> togglePause());
-
-        // Mini player click listener to expand full player
         miniPlayer.setOnClickListener(v -> expandFullPlayer());
-        miniPausePlay.setOnClickListener(v -> togglePause());
-
-
-    // Set click listener for next button
         nextBtn.setOnClickListener(v -> {
             playNextSong();
             pausePlayButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
             miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
         });
-
-        // Set click listener for previous button
         previousBtn.setOnClickListener(v -> {
             playPreviousSong();
             pausePlayButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
             miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
         });
+
         PlaylistAdapter playlistAdapter = new PlaylistAdapter(playlistList, this);
         SongModel currentSong = MyExoplayer.getCurrentSong();
         String songId = getIntent().getStringExtra("songId");
-        String imgSong = getIntent().getStringExtra("imgSong");
-
         Bundle bundle = new Bundle();
         bundle.putString("songId", songId);
         playlistAdapter.setSongId(songId);
@@ -148,18 +135,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
             binding.artistsSongs.setText(currentSong.getArtists());
             Glide.with(binding.getRoot().getContext())
                     .load(currentSong.getImgUrl())
-//                    .apply(RequestOptions.circleCropTransform())
                     .into(binding.imgSongs);
         }
 
-        if (currentSong != null) {
-            miniNameSongs.setText(currentSong.getName());
-            miniArtistsSongs.setText(currentSong.getArtists());
-            Glide.with(this)
-                    .load(currentSong.getImgUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(miniImgSongs);
-        }
         binding.moreBtn.setOnClickListener(v -> {
             // Create a dialog and set the layout
             Dialog dialog = new Dialog(MusicPlayerActivity.this);
@@ -179,19 +157,14 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 transaction.commit();
                 dialog.dismiss();
             });
-
             // Show the dialog
             dialog.show();
         });
 
-        pausePlayButton.setOnClickListener(v -> togglePause());
-
         // Set up SeekBar change listener
         seekBar.setOnSeekBarChangeListener(seekBarChangeListener);
-
         // Update SeekBar and time TextViews
         initVolumeSeekBar();
-
         updateSeekBar();
         // Set up handler to update SeekBar and time TextViews periodically
         handler.postDelayed(seekBarUpdater, 1000);
@@ -213,19 +186,89 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 }
             });
         }
-        binding.likeIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                toggleLikeStatus(getIntent().getStringExtra("songId"));
-            }
-        });
+        binding.likeIcon.setOnClickListener(v -> toggleLikeStatus(getIntent().getStringExtra("songId")));
     }
 
+    private void updatePausePlayButtonState(boolean isPlaying) {
+        int resId = isPlaying ? R.drawable.baseline_pause_circle_outline_24 : R.drawable.baseline_play_circle_24;
+        miniPausePlay.setImageResource(resId);
+        if (pausePlayButton != null) {
+            pausePlayButton.setImageResource(resId);
+        }
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Update the button state based on the current player state
+        updatePausePlayButtonState(playerStateManager.isPlaying());
+    }
     @Override
     protected void onResume() {
         super.onResume();
         updateUIWithCurrentSong();
     }
+    //    @Override
+//    protected void onPause() {
+//        super.onPause();
+//    }
+    private void togglePause() {
+        ExoPlayer player = MyExoplayer.getExoPlayer();
+        if (player != null) {
+            if (player.isPlaying()) {
+                player.pause();
+                playerStateManager.setPlaying(false);
+            } else {
+                player.play();
+                playerStateManager.setPlaying(true);
+            }
+        }
+    }
+    private void updateUIWithCurrentSong() {
+        SongModel currentSong = MyExoplayer.getCurrentSong();
+        if (currentSong != null && !isDestroyed() && !isFinishing()) {
+            Log.d("MusicPlayerActivity", "Updating UI with current song: " + currentSong.getName());
+
+            // Update full player views
+            binding.nameSongs.setText(currentSong.getName());
+            binding.artistsSongs.setText(currentSong.getArtists());
+            Glide.with(this)
+                    .load(currentSong.getImgUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(binding.imgSongs);
+
+            // Update mini player views
+            miniNameSongs.setText(currentSong.getName());
+            miniArtistsSongs.setText(currentSong.getArtists());
+            Glide.with(this)
+                    .load(currentSong.getImgUrl())
+                    .apply(RequestOptions.circleCropTransform())
+                    .into(miniImgSongs);
+            updateLikeIconState(getIntent().getStringExtra("songId"));
+
+            Log.d("MusicPlayerActivity", "Mini Player updated with song: " + currentSong.getName());
+        } else {
+            Log.d("MusicPlayerActivity", "No current song found or Activity is destroyed");
+        }
+    }
+    private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            if (fromUser && exoPlayer != null) {
+                long duration = exoPlayer.getDuration();
+                long newPosition = (duration * progress) / 100;
+                exoPlayer.seekTo(newPosition);
+            }
+        }
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+            isSeekBarDragging = true;
+        }
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+            isSeekBarDragging = false;
+        }
+    };
     private void initVolumeSeekBar(){
         final AudioManager audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
         if (audioManager != null) {
@@ -249,29 +292,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             });
         }
     }
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//    }
-    private final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (fromUser && exoPlayer != null) {
-                long duration = exoPlayer.getDuration();
-                long newPosition = (duration * progress) / 100;
-                exoPlayer.seekTo(newPosition);
-            }
-        }
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {
-            isSeekBarDragging = true;
-        }
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            isSeekBarDragging = false;
-        }
-    };
 
     private final Runnable seekBarUpdater = new Runnable() {
         @Override
@@ -280,7 +300,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
             handler.postDelayed(this, 1000);
         }
     };
-
     private void updateSeekBar() {
         if (exoPlayer != null && !isSeekBarDragging) {
             long currentPosition = exoPlayer.getCurrentPosition();
@@ -290,12 +309,10 @@ public class MusicPlayerActivity extends AppCompatActivity {
                 int progress = (int) ((currentPosition * 100) / duration);
                 seekBar.setProgress(progress);
             }
-
             currentTimeTextView.setText(formatTime(currentPosition));
             totalTimeTextView.setText(formatTime(duration));
         }
     }
-
     @SuppressLint("DefaultLocale")
     private String formatTime(long timeInMillis) {
         int totalSeconds = (int) (timeInMillis / 1000);
@@ -305,21 +322,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
         return String.format("%02d:%02d", minutes, seconds);
     }
 
-    private void togglePause() {
-        ExoPlayer player = MyExoplayer.getExoPlayer();
-        if (player != null) {
-            if (MyExoplayer.isPlaying()) {
-                player.pause();
-                pausePlayButton.setImageResource(R.drawable.baseline_play_circle_24);
-                miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
-            } else {
-                player.play();
-                pausePlayButton.setImageResource(R.drawable.baseline_pause_circle_outline_24);
-                miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
-            }
-            MyExoplayer.togglePlayPause();
-        }
-    }
     private void expandFullPlayer() {
         fullPlayer.setVisibility(View.VISIBLE);
         miniPlayer.setVisibility(View.GONE);
@@ -327,17 +329,9 @@ public class MusicPlayerActivity extends AppCompatActivity {
     }
 
     private void minimizePlayer() {
-        fullPlayer.setVisibility(View.GONE);
-        miniPlayer.setVisibility(View.VISIBLE);
+        overridePendingTransition(R.anim.slide_out_bottom, 0);
         updateUIWithCurrentSong();
-
-        // Hiển thị mini player khi thu nhỏ
-        View miniPlayerView = findViewById(R.id.miniPlayer);
-        if (miniPlayerView != null) {
-            miniPlayerView.setVisibility(View.VISIBLE);
-        }
     }
-
     private void playNextSong() {
         MyExoplayer.playNextSong();
         updateUIWithCurrentSong();
@@ -347,35 +341,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
     private void playPreviousSong() {
         MyExoplayer.playPreviousSong();
         updateUIWithCurrentSong();
-
-    }
-    private void updateUIWithCurrentSong() {
-        SongModel currentSong = MyExoplayer.getCurrentSong();
-        if (currentSong != null && !isDestroyed() && !isFinishing()) {
-            Log.d("MusicPlayerActivity", "Updating UI with current song: " + currentSong.getName());
-
-            // Update full player views
-            binding.nameSongs.setText(currentSong.getName());
-            binding.artistsSongs.setText(currentSong.getArtists());
-            Glide.with(this)
-                    .load(currentSong.getImgUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(binding.imgSongs);
-
-            // Update mini player views
-            miniNameSongs.setText(currentSong.getName());
-            miniArtistsSongs.setText(currentSong.getArtists());
-            Glide.with(this)
-                    .load(currentSong.getImgUrl())
-                    .apply(RequestOptions.circleCropTransform())
-                    .into(miniImgSongs);
-
-            updateLikeIconState(getIntent().getStringExtra("songId"));
-
-            Log.d("MusicPlayerActivity", "Mini Player updated with song: " + currentSong.getName());
-        } else {
-            Log.d("MusicPlayerActivity", "No current song found or Activity is destroyed");
-        }
     }
     private void updateLikeIconState(String songId) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -470,5 +435,6 @@ public class MusicPlayerActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         handler.removeCallbacks(seekBarUpdater);
+        playerStateManager.removeListener(this::updatePausePlayButtonState);
     }
 }

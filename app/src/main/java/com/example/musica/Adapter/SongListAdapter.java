@@ -53,50 +53,39 @@ public class SongListAdapter extends RecyclerView.Adapter<SongListAdapter.MyView
             db.collection("songs")
                     .document(songId)
                     .get()
-                    .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                        @Override
-                        public void onSuccess(DocumentSnapshot documentSnapshot) {
-                            if (documentSnapshot.exists()) {
-                                SongModel song = documentSnapshot.toObject(SongModel.class);
-                                if (song != null) {
-                                    // Add the song to the playlist
-                                    playlist.add(song);
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists()) {
+                            SongModel song = documentSnapshot.toObject(SongModel.class);
+                            if (song != null) {
+                                // Add the song to the playlist
+                                playlist.add(song);
+                                // Update UI elements based on retrieved song data
+                                binding.nameSongs.setText(song.getName());
+                                binding.artistsSongs.setText(song.getArtists());
+                                Glide.with(binding.getRoot().getContext())
+                                        .load(song.getImgUrl())
+                                        .apply(RequestOptions.centerCropTransform()
+                                                .transform(new RoundedCorners(16)))
+                                        .into(binding.imgSongs);
+                                binding.getRoot().setOnClickListener(v -> {
+                                    Context context = v.getContext();
+                                    MyExoplayer.startPlaying(context, song, playlist); // Pass the playlist
 
-                                    // Update UI elements based on retrieved song data
-                                    binding.nameSongs.setText(song.getName());
-                                    binding.artistsSongs.setText(song.getArtists());
-                                    Glide.with(binding.getRoot().getContext())
-                                            .load(song.getImgUrl())
-                                            .apply(RequestOptions.centerCropTransform()
-                                                    .transform(new RoundedCorners(16)))
-                                            .into(binding.imgSongs);
-                                    binding.getRoot().setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            Context context = v.getContext();
-                                            MyExoplayer.startPlaying(context, song, playlist); // Pass the playlist
-
-                                            // Tạo Intent và thêm songId vào Intent
-                                            Intent intent = new Intent(context, MusicPlayerActivity.class);
-                                            intent.putExtra("songId", songId); // Thêm songId vào Intent
-                                            context.startActivity(intent);
-                                        }
-                                    });
-                                }
-                            } else {
-                                // Handle the case where the document doesn't exist
-                                Log.d("SongListAdapter", "Document does not exist: " + songId);
-                                // You can choose to show a message or do nothing
+                                    Intent intent = new Intent(context, MusicPlayerActivity.class);
+                                    intent.putExtra("songId", songId); // Pass songId to the Intent
+                                    context.startActivity(intent);
+                                });
                             }
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            // Handle the case where getting song data fails
-                            Log.e("SongListAdapter", "Failed to get song data: " + e.getMessage());
+                        } else {
+                            // Handle the case where the document doesn't exist
+                            Log.d("SongListAdapter", "Document does not exist: " + songId);
                             // You can choose to show a message or do nothing
                         }
+                    })
+                    .addOnFailureListener(e -> {
+                        // Handle the case where getting song data fails
+                        Log.e("SongListAdapter", "Failed to get song data: " + e.getMessage());
+                        // You can choose to show a message or do nothing
                     });
         }
     }

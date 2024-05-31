@@ -2,20 +2,17 @@ package com.example.musica;
 
 import static androidx.constraintlayout.motion.utils.Oscillator.TAG;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
@@ -30,43 +27,44 @@ import com.example.musica.Fragment.BottomMenuFragment.LibraryFragment;
 import com.example.musica.Fragment.BottomMenuFragment.SearchFragment;
 import com.example.musica.Fragment.BottomMenuFragment.UserFragment;
 import com.example.musica.Fragment.SubFragment.AddSongToPlaylistFragment;
-import com.example.musica.Model.PlaylistModel;
 import com.example.musica.Model.SongModel;
 import com.example.musica.Object.MyExoplayer;
+import com.example.musica.Utils.PlayerStateManager;
 import com.example.musica.databinding.ActivityMainBinding;
-import com.example.musica.databinding.ActivityMusicPlayerBinding;
 import com.example.musica.databinding.MiniPlayerLayoutBinding;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private FirebaseAuth mAuth;
-    private String playlistName;
     ActivityMainBinding binding;
-    ActivityMusicPlayerBinding musicPlayerBinding;
-    private boolean isPlaying = false;
-    private View  miniPlayer;
     private ImageView miniImgSongs, miniPausePlay;
     private TextView miniNameSongs, miniArtistsSongs;
+    private ImageView pausePlayButton;
+    private PlayerStateManager playerStateManager;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        View miniPlayer = binding.miniPlayer.getRoot();
+        MiniPlayerLayoutBinding miniPlayerBinding = MiniPlayerLayoutBinding.bind(miniPlayer);
+        miniImgSongs = miniPlayerBinding.miniImgSongs;
+        miniPausePlay = miniPlayerBinding.miniPausePlay;
+        miniNameSongs = miniPlayerBinding.miniNameSongs;
+        miniArtistsSongs = miniPlayerBinding.miniArtistsSongs;
+        playerStateManager = PlayerStateManager.getInstance();
+
+        // Register the state listener
+        playerStateManager.addListener(this::updatePausePlayButtonState);
+        miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
         if (currentUser != null) {
             String userId = currentUser.getUid();
             Log.d("MainActivity", "User ID: " + userId);
@@ -90,37 +88,21 @@ public class MainActivity extends AppCompatActivity {
         if (getIntent().getBooleanExtra("goToHomeFragment", false)) {
             replaceFragment(new HomeFragment());
         } else {
-            replaceFragment(new HomeFragment());  // Load HomeFragment mặc định
+            replaceFragment(new HomeFragment());
         }
-
         binding.bottomNavigationView.setBackground(null);
-//        binding.floatingbtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                openCreatePlaylistAlertDialog();
-//            }
-//        });
-
         setupBottomNavigation();
-
         SongModel currentSong = MyExoplayer.getCurrentSong();
 
-        miniPlayer = binding.miniPlayer.getRoot();
-        MiniPlayerLayoutBinding miniPlayerBinding = MiniPlayerLayoutBinding.bind(miniPlayer);
-        miniImgSongs = miniPlayerBinding.miniImgSongs;
-        miniPausePlay = miniPlayerBinding.miniPausePlay;
-        miniNameSongs = miniPlayerBinding.miniNameSongs;
-        miniArtistsSongs = miniPlayerBinding.miniArtistsSongs;
-        miniPlayer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
-                startActivity(intent);
-            }
+        miniPlayer.setOnClickListener(v -> {
+            Log.d("MainActivity", "Mini player clicked. Starting MusicPlayerActivity...");
+            miniPlayer.startAnimation(AnimationUtils.loadAnimation(MainActivity.this, R.anim.slide_in_bottom));
+            Intent intent = new Intent(MainActivity.this, MusicPlayerActivity.class);
+            startActivity(intent);
+            overridePendingTransition(0,R.anim.slide_in_bottom); // Apply the slide-in animation
         });
         miniPausePlay.setOnClickListener(v -> togglePause());
         CollectionReference songsRef = FirebaseFirestore.getInstance().collection("songs");
-        // Thực hiện truy vấn để lấy danh sách bài hát
         songsRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 List<SongModel> playlistFromFirebase = new ArrayList<>();
@@ -151,7 +133,14 @@ public class MainActivity extends AppCompatActivity {
                     .apply(RequestOptions.circleCropTransform())
                     .into(miniImgSongs);
         }
-    }private void handlePlaylistFromFirebase(List<SongModel> playlistFromFirebase) {
+    }
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Update the button state based on the current player state
+        updatePausePlayButtonState(playerStateManager.isPlaying());
+    }
+    private void handlePlaylistFromFirebase(List<SongModel> playlistFromFirebase) {
         // Lấy bài hát đầu tiên từ danh sách làm bài hát mặc định (nếu có)
         SongModel defaultSong = null;
         if (!playlistFromFirebase.isEmpty()) {
@@ -162,15 +151,14 @@ public class MainActivity extends AppCompatActivity {
         if (defaultSong != null) {
             MyExoplayer.startPlaying(this, defaultSong, playlistFromFirebase);
             MyExoplayer.pause();
-//            miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
-            updateUIWithCurrentSong();
+            miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
         }
     }
     private void updateUIWithCurrentSong() {
         SongModel currentSong = MyExoplayer.getCurrentSong();
         if (currentSong != null && !isDestroyed() && !isFinishing()) {
-            Log.d("MusicPlayerActivity", "Updating UI with current song: " + currentSong.getName());
-            // Update mini player views
+            Log.d("MainActivity", "Updating UI with current song: " + currentSong.getName());
+
             miniNameSongs.setText(currentSong.getName());
             miniArtistsSongs.setText(currentSong.getArtists());
             Glide.with(this)
@@ -178,9 +166,11 @@ public class MainActivity extends AppCompatActivity {
                     .apply(RequestOptions.circleCropTransform())
                     .into(miniImgSongs);
 
-            Log.d("MusicPlayerActivity", "Mini Player updated with song: " + currentSong.getName());
+            // Set the initial state to play
+            miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
+            Log.d("MainActivity", "Mini Player updated with song: " + currentSong.getName());
         } else {
-            Log.d("MusicPlayerActivity", "No current song found or Activity is destroyed");
+            Log.d("MainActivity", "No current song found or Activity is destroyed");
         }
     }
     @Override
@@ -190,9 +180,7 @@ public class MainActivity extends AppCompatActivity {
         Fragment currentFragment = fragmentManager.findFragmentById(R.id.frame_layout);
 
         if (currentFragment instanceof HomeFragment) {
-            // Handle back press in HomeFragment
-            // Ví dụ: hiển thị một thông báo
-            // Bạn có thể đặt thêm logic xử lý khác nếu muốn
+            Log.d("MainActivity", "HomeFragment is visible");
         } else {
             // If there are more than one fragments in the back stack, pop the back stack
             if (fragmentManager.getBackStackEntryCount() > 1) {
@@ -203,17 +191,24 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+    private void updatePausePlayButtonState(boolean isPlaying) {
+        int resId = isPlaying ? R.drawable.baseline_pause_circle_outline_24 : R.drawable.baseline_play_circle_24;
+        miniPausePlay.setImageResource(resId);
+        if (pausePlayButton != null) {
+            pausePlayButton.setImageResource(resId);
+        }
+    }
+
     private void togglePause() {
         ExoPlayer player = MyExoplayer.getExoPlayer();
         if (player != null) {
-            if (MyExoplayer.isPlaying()) {
+            if (player.isPlaying()) {
                 player.pause();
-                miniPausePlay.setImageResource(R.drawable.baseline_play_circle_24);
+                playerStateManager.setPlaying(false);
             } else {
                 player.play();
-                miniPausePlay.setImageResource(R.drawable.baseline_pause_circle_outline_24);
+                playerStateManager.setPlaying(true);
             }
-            MyExoplayer.togglePlayPause();
         }
     }
     private void setupBottomNavigation() {
@@ -255,101 +250,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "No current user");
         }
     }
-
-    private void openCreatePlaylistAlertDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = this.getLayoutInflater();
-
-        View dialogView = inflater.inflate(R.layout.create_playlist_dialog, null);
-        builder.setView(dialogView);
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
-
-        TextInputEditText inputDialog = dialogView.findViewById(R.id.editTextDialog);
-        CardView confirmButton = dialogView.findViewById(R.id.confirm_button);
-        CardView cancelButton = dialogView.findViewById(R.id.cancel_button);
-        mAuth = FirebaseAuth.getInstance();
-        String userId = mAuth.getUid();
-        playlistName = String.valueOf(inputDialog.getText());
-
-        if (!playlistName.isEmpty()) {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            CollectionReference playlistsRef = db.collection("playlists");
-
-            PlaylistModel playlist = new PlaylistModel(playlistName, userId,"https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41",new ArrayList<>());
-
-            playlistsRef.add(playlist)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
-                            dialog.dismiss();
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w(TAG, "Error adding playlist", e);
-                        }
-                    });
-        } else {
-            Toast.makeText(this, "Please enter a playlist name", Toast.LENGTH_SHORT).show();
-        }
-
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                dialog.dismiss();
-            }
-        });
-
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mAuth = FirebaseAuth.getInstance();
-                String userId = mAuth.getUid();
-                playlistName = String.valueOf(inputDialog.getText());
-
-                if (!playlistName.isEmpty()) {
-                    FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    CollectionReference playlistsRef = db.collection("playlists");
-
-                    // Kiểm tra xem tên playlist đã tồn tại chưa
-                    playlistsRef.whereEqualTo("name", playlistName)
-                            .get()
-                            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                @Override
-                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        if (task.getResult().size() > 0) {
-                                        } else {
-                                            // Nếu tên playlist chưa tồn tại, thêm vào Firestore
-                                            PlaylistModel playlist = new PlaylistModel(playlistName, userId, "https://firebasestorage.googleapis.com/v0/b/musicproject-53d9d.appspot.com/o/playlist.png?alt=media&token=bf8bce8e-926d-4a15-94cb-488135dcae41", new ArrayList<>());
-
-                                            playlistsRef.add(playlist)
-                                                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                                                        @Override
-                                                        public void onSuccess(DocumentReference documentReference) {
-                                                            Log.d(TAG, "Playlist added with ID: " + documentReference.getId());
-                                                            dialog.dismiss();
-                                                        }
-                                                    })
-                                                    .addOnFailureListener(new OnFailureListener() {
-                                                        @Override
-                                                        public void onFailure(@NonNull Exception e) {
-                                                            Log.w(TAG, "Error adding playlist", e);
-                                                        }
-                                                    });
-                                        }
-                                    } else {
-                                        Log.d(TAG, "Error getting documents: ", task.getException());
-                                    }
-                                }
-                            });
-                }
-            }
-        });
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        playerStateManager.removeListener(this::updatePausePlayButtonState);
     }
 }

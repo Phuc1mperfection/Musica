@@ -6,6 +6,8 @@ import android.view.View;
 import androidx.media3.common.MediaItem;
 import androidx.media3.exoplayer.ExoPlayer;
 import com.example.musica.Model.SongModel;
+import com.example.musica.Utils.PlayerStateManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,8 +25,12 @@ public class MyExoplayer {
             setSongList(playlist);
             currentSongIndex = songList.indexOf(song); // Set current song index
             playSong(song);
+
+            // Update PlayerStateManager to indicate the player is playing
+            PlayerStateManager.getInstance().setPlaying(true);
         }
     }
+
 
     public static void initializePlayer(Context context) {
         if (exoPlayer == null) {
@@ -38,6 +44,11 @@ public class MyExoplayer {
             playSong(songList.get(currentSongIndex));
         }
     }
+    public static void setPlaying(boolean playing) {
+        isPlaying = playing;
+    }
+
+
     public static void togglePlayPause() {
         isPlaying = !isPlaying;
     }
